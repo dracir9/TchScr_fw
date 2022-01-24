@@ -51,6 +51,7 @@ void SiLabs_Startup (void)
 int main (void)
 {
 	Vec2 point;
+	bool valid = false;
 	bool pressed = false;
 	bool lastPressed = false;
 	uint16_t lastP = 0;
@@ -73,12 +74,12 @@ int main (void)
 		if (readComplete)
 		{
 			readComplete = false;
+			valid = true;
 			if (touchPoint.z > p_min && touchPoint.z < p_max)
 			{
-				if (touchPoint.z > lastP)
+				pressed = true;
+				if (touchPoint.z > lastP)	// Pressure is increasing
 				{
-					pressed = true;
-
 					// Interpolate
 					//point.x = x_min + (point.x - rx_min) * (x_max - x_min)/(rx_max-rx_min); // -> 41 Cycles
 					//point.x = (point.x - rx_min) * x_max/(rx_max-rx_min); // ->28 Cycles
@@ -86,8 +87,8 @@ int main (void)
 					//point.x = point.x * a + rx_min; // -> 200
 					if (flipXY)
 					{
-						point.y = (int32_t)(touchPoint.x - rx_min) * dx/rx_max; // ->125 Cycles
-						point.x = (int32_t)(touchPoint.y - ry_min) * dy/ry_max;
+						point.x = (int32_t)(touchPoint.y - rx_min) * dx/rx_max; // ->125 Cycles
+						point.y = (int32_t)(touchPoint.x - ry_min) * dy/ry_max;
 					}
 					else
 					{
@@ -95,22 +96,14 @@ int main (void)
 						point.y = (int32_t)(touchPoint.y - ry_min) * dy/ry_max;
 					}
 
-					LAST_POINT = point;
+					if (abs(LAST_POINT.x - point.x) > 4 || abs(LAST_POINT.y - point.y) > 4)
+						valid = false;
 
-					if (touchIRQ)
-					{
-						while(SMB_BUSY);
-						// Fill data to send
-						SMB_DATA_OUT_MASTER[0] = ((uint8_t*)&point.x)[1];
-						SMB_DATA_OUT_MASTER[1] = ((uint8_t*)&point.x)[0];
-						SMB_DATA_OUT_MASTER[2] = ((uint8_t*)&point.y)[1];
-						SMB_DATA_OUT_MASTER[3] = ((uint8_t*)&point.y)[0];
-						// Start write
-						SMB_Write(ESP_ADDR, 4);
-					}
+					LAST_POINT = point;
 				}
 				else
-					pressed = false;
+					valid = false;
+
 				lastP = touchPoint.z;
 
 				startTchRead();
@@ -122,21 +115,36 @@ int main (void)
 				setIdle();
 			}
 
-			if (!lastPressed && pressed) touchState = TCH_PRESS;
-			else if (lastPressed && pressed) touchState = TCH_HOLD;
-			else if (lastPressed && !pressed) touchState = TCH_RELEASE;
-			else touchState = TCH_FREE;
-
-			// Update buttons
-
-			if (touchState != TCH_FREE && checkButtons(point.x, point.y) != -1 && buttonIRQ)
+			if (valid)
 			{
-				while(SMB_BUSY);
-				SMB_DATA_OUT_MASTER[0] = activeBtn;
-				SMB_Write(ESP_ADDR, 1);
-			}
+				if (!lastPressed && pressed) touchState = TCH_PRESS;
+				else if (lastPressed && pressed) touchState = TCH_HOLD;
+				else if (lastPressed && !pressed) touchState = TCH_RELEASE;
+				else touchState = TCH_FREE;
 
-			lastPressed = pressed;
+				// Send notifications
+
+				if (touchIRQ)
+				{
+					while(SMB_BUSY);
+					// Fill data to send
+					SMB_DATA_OUT_MASTER[0] = ((uint8_t*)&point.x)[1];
+					SMB_DATA_OUT_MASTER[1] = ((uint8_t*)&point.x)[0];
+					SMB_DATA_OUT_MASTER[2] = ((uint8_t*)&point.y)[1];
+					SMB_DATA_OUT_MASTER[3] = ((uint8_t*)&point.y)[0];
+					// Start write
+					SMB_Write(ESP_ADDR, 4);
+				}
+
+				if (checkButtons(point.x, point.y) != -1 && buttonIRQ)
+				{
+					while(SMB_BUSY);
+					SMB_DATA_OUT_MASTER[0] = activeBtn;
+					SMB_Write(ESP_ADDR, 1);
+				}
+
+				lastPressed = pressed;
+			}
 		}
 
 		if (DATA_READY)
