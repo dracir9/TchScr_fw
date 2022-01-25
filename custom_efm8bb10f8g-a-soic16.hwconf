@@ -23,6 +23,7 @@
     <property object="INTERRUPT_0" propertyId="interrupt.extendedinterruptpriority1.smbussmb0prioritycontrolinterrupt" value="High priority"/>
     <property object="INTERRUPT_0" propertyId="interrupt.interruptenable.enableexternal0interrupt" value="Enabled"/>
     <property object="INTERRUPT_0" propertyId="interrupt.interruptenable.enabletimer1interrupt" value="Enabled"/>
+    <property object="INTERRUPT_0" propertyId="interrupt.interruptenable.enabletimer2interrupt" value="Enabled"/>
     <property object="INTERRUPT_0" propertyId="interruptenables.codegenerationoptions.generateinterruptfunctions" value="Disabled"/>
     <property object="P0.0" propertyId="ports.settings.iomode" value="Digital Push-Pull Output"/>
     <property object="P0.0" propertyId="ports.settings.latch" value="Low"/>
