@@ -165,6 +165,7 @@ SI_INTERRUPT(SMBUS0_ISR, SMBUS0_IRQn)
 		{								// If the received address matches,
 			SMB0CN0_ACK = 1;			// SMB0CN_ACK the received slave address
 			IS_SLAVE = true;
+			SMB_BUSY = false;
 			if((SMB0DAT & 0x01) == READ)	// If the transfer is a master READ
 			{
 				if ((SMB0DAT & 0x30) == 0)	// ADDR: 1000 xxx1
@@ -227,7 +228,6 @@ SI_INTERRUPT(SMBUS0_ISR, SMBUS0_IRQn)
 			if (slaveBytesReceived >= nSlaveReceive)
 			{
 				DATA_READY = true;		// Indicate new data received
-				SMB_BUSY = false;
 				IS_SLAVE = false;
 			}
 			SMB0CN0_ACK = 1;			// SMB0CN_ACK received data
