@@ -35,6 +35,8 @@ volatile bool SMB_BUSY = false;			// Software flag to indicate when the
 										// SMB_Read() or SMB_Write() functions
 										// have claimed the SMBus
 
+volatile bool IS_SLAVE = false;
+
 uint8_t nMasterWrite = 0;
 uint8_t nSlaveReceive = 0;
 uint8_t nSlaveSend = 0;
@@ -46,6 +48,7 @@ uint8_t NUM_ERRORS;						// Counter for the number of errors.
 void SMB_Write(uint8_t target, uint8_t cnt)
 {
 	while(SMB_BUSY);					// Wait for SMBus to be free.
+	if (IS_SLAVE || DATA_READY) return;
 	SMB_BUSY = true;					// Claim SMBus (set to busy)
 	TARGET = target;
 	nMasterWrite = cnt;
@@ -161,6 +164,7 @@ SI_INTERRUPT(SMBUS0_ISR, SMBUS0_IRQn)
 		if((SMB0DAT & 0xCE) == (MY_ADDR & 0xCE))// Decode address
 		{								// If the received address matches,
 			SMB0CN0_ACK = 1;			// SMB0CN_ACK the received slave address
+			IS_SLAVE = true;
 			if((SMB0DAT & 0x01) == READ)	// If the transfer is a master READ
 			{
 				if ((SMB0DAT & 0x30) == 0)	// ADDR: 1000 xxx1
@@ -221,7 +225,11 @@ SI_INTERRUPT(SMBUS0_ISR, SMBUS0_IRQn)
 			SMB_DATA_IN_SLAVE[slaveBytesReceived++] = SMB0DAT;
 
 			if (slaveBytesReceived >= nSlaveReceive)
+			{
 				DATA_READY = true;		// Indicate new data received
+				SMB_BUSY = false;
+				IS_SLAVE = false;
+			}
 			SMB0CN0_ACK = 1;			// SMB0CN_ACK received data
 		}
 		else							// Bus error detected
@@ -259,6 +267,10 @@ SI_INTERRUPT(SMBUS0_ISR, SMBUS0_IRQn)
               // Prepare next outgoing byte
               SMB0DAT = SMB_DATA_OUT_SLAVE[slaveBytesSent++];
            }
+           else
+           {
+        	   IS_SLAVE = false;
+           }
         }
 		break;
 
@@ -276,8 +288,6 @@ SI_INTERRUPT(SMBUS0_ISR, SMBUS0_IRQn)
 	default:
 		M_FAIL = 1;// Indicate failed transfer
 				   // and handle at end of ISR
-		TMR2CN0 &= ~(TMR2CN0_TR2__RUN);		// Disable timeout timer
-		SMB_BUSY = false;				// Free SMBus
 		break;
 
 	} // end switch
@@ -292,6 +302,7 @@ SI_INTERRUPT(SMBUS0_ISR, SMBUS0_IRQn)
 
 		TMR2CN0 &= ~(TMR2CN0_TR2__RUN);	// Disable timeout timer
 		SMB_BUSY = false;				// Free SMBus
+		IS_SLAVE = false;
 
 		M_FAIL = 0;
 
@@ -321,7 +332,7 @@ SI_INTERRUPT(TIMER3_ISR, TIMER3_IRQn)
 	SMB0CN0_STA = 0;
 	TMR2CN0 &= ~(TMR2CN0_TR2__RUN);		// Disable timeout timer
 	SMB_BUSY = false;					// Free SMBus
-
+	IS_SLAVE = false;
 }
 
 //-----------------------------------------------------------------------------
@@ -338,11 +349,11 @@ SI_INTERRUPT(TIMER3_ISR, TIMER3_IRQn)
 //-----------------------------------------------------------------------------
 SI_INTERRUPT(TIMER2_ISR, TIMER2_IRQn)
 {
-	SMB0CF &= ~0x80;					// Disable SMBus
-	SMB0CF |= 0x80;						// Re-enable SMBus
+	//SMB0CF &= ~0x80;					// Disable SMBus
+	//SMB0CF |= 0x80;						// Re-enable SMBus
 	TMR2CN0 &= ~0x80;					// Clear Timer2 interrupt-pending flag
-	SMB0CN0_STA = 0;
+	//SMB0CN0_STA = 0;
 	TMR2CN0 &= ~(TMR2CN0_TR2__RUN);		// Disable timeout timer
-	SMB_BUSY = false;					// Free SMBus
-
+	//SMB_BUSY = false;					// Free SMBus
+	//IS_SLAVE = false;
 }
