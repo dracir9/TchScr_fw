@@ -41,7 +41,7 @@ uint8_t nSlaveSend = 0;
 
 Vec2 LAST_POINT;
 
-uint8_t NUM_ERRORS;						// Counter for the number of errors.
+uint8_t NUM_ERRORS = 0;						// Counter for the number of errors.
 
 void SMB_Write(uint8_t target, uint8_t cnt)
 {
@@ -119,14 +119,16 @@ SI_INTERRUPT(SMBUS0_ISR, SMBUS0_IRQn)
 			else						// If slave NACK,
 			{
 				SMB0CN0_STO = 1;		// Send STOP condition, followed
-				if (NUM_ERRORS < 255)
+				if (NUM_ERRORS < 0)
 				{
 					SMB0CN0_STA = 1;	// By a START
 					NUM_ERRORS++;		// Indicate error
 				}
 				else
 				{
-					M_FAIL = true;
+					TMR2CN0 &= ~(TMR2CN0_TR2__RUN);	// Disable timeout timer
+					SMB_BUSY = false;				// Free SMBus
+					NUM_ERRORS = 0;					// Indicate an error occurred
 				}
 			}
 		}
@@ -295,7 +297,7 @@ SI_INTERRUPT(SMBUS0_ISR, SMBUS0_IRQn)
 
 		M_FAIL = 0;
 
-		NUM_ERRORS++;					// Indicate an error occurred
+		NUM_ERRORS = 0;					// Indicate an error occurred
 	}
 
 	SMB0CN0_SI = 0;						// Clear interrupt flag
