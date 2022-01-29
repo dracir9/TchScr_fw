@@ -31,6 +31,7 @@ uint16_t p_max = 20000;
 bool touchIRQ = false;
 bool buttonIRQ = false;
 bool flipXY = false;
+volatile bool IS_READY = true;
 
 //-----------------------------------------------------------------------------
 // SiLabs_Startup() Routine
@@ -124,7 +125,7 @@ int main (void)
 
 				// Send notifications
 
-				if (touchIRQ)
+				if (touchIRQ && IS_READY)
 				{
 					while(SMB_BUSY);
 					// Fill data to send
@@ -134,6 +135,8 @@ int main (void)
 					SMB_DATA_OUT_MASTER[3] = ((uint8_t*)&point.y)[0];
 					// Start write
 					SMB_Write(ESP_ADDR, 4);
+					IS_READY = false;
+					TMR2CN0 |= TMR2CN0_TR2__RUN;		// Enable timeout timer
 				}
 
 				if (checkButtons(point.x, point.y) != -1 && buttonIRQ)
@@ -190,4 +193,20 @@ int main (void)
 			DATA_READY = false;
 		}
 	}
+}
+
+//-----------------------------------------------------------------------------
+// TIMER2_ISR
+//-----------------------------------------------------------------------------
+//
+// TIMER2 ISR Content goes here. Remember to clear flag bits:
+// TMR2CN::TF2H (Timer # High Byte Overflow Flag)
+// TMR2CN::TF2L (Timer # Low Byte Overflow Flag)
+//
+//-----------------------------------------------------------------------------
+SI_INTERRUPT(TIMER2_ISR, TIMER2_IRQn)
+{
+	TMR2CN0 &= ~0x80;					// Clear Timer2 interrupt-pending flag
+	TMR2CN0 &= ~(TMR2CN0_TR2__RUN);		// Disable timeout timer
+	IS_READY = true;
 }

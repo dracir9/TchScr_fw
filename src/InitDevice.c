@@ -29,6 +29,7 @@ extern void enter_DefaultMode_from_RESET(void)
 	ADC_0_enter_DefaultMode_from_RESET();
 	CLOCK_0_enter_DefaultMode_from_RESET();
 	TIMER01_0_enter_DefaultMode_from_RESET();
+	TIMER16_2_enter_DefaultMode_from_RESET();
 	TIMER16_3_enter_DefaultMode_from_RESET();
 	TIMER_SETUP_0_enter_DefaultMode_from_RESET();
 	SMBUS_0_enter_DefaultMode_from_RESET();
@@ -483,6 +484,49 @@ extern void TIMER16_3_enter_DefaultMode_from_RESET(void)
 	// $[Timer Restoration]
 	// Restore Timer Configuration
 	TMR3CN0 |= TMR3CN0_TR3_save;
+	// [Timer Restoration]$
+
+}
+
+extern void TIMER16_2_enter_DefaultMode_from_RESET(void)
+{
+	// $[Timer Initialization]
+	// Save Timer Configuration
+	uint8_t TMR2CN0_TR2_save;
+	TMR2CN0_TR2_save = TMR2CN0 & TMR2CN0_TR2__BMASK;
+	// Stop Timer
+	TMR2CN0 &= ~(TMR2CN0_TR2__BMASK);
+	// [Timer Initialization]$
+
+	// $[TMR2CN0 - Timer 2 Control]
+	// [TMR2CN0 - Timer 2 Control]$
+
+	// $[TMR2H - Timer 2 High Byte]
+	// [TMR2H - Timer 2 High Byte]$
+
+	// $[TMR2L - Timer 2 Low Byte]
+	// [TMR2L - Timer 2 Low Byte]$
+
+	// $[TMR2RLH - Timer 2 Reload High Byte]
+	/***********************************************************************
+	 - Timer 2 Reload High Byte = 0xDE
+	 ***********************************************************************/
+	TMR2RLH = (0xDE << TMR2RLH_TMR2RLH__SHIFT);
+	// [TMR2RLH - Timer 2 Reload High Byte]$
+
+	// $[TMR2RLL - Timer 2 Reload Low Byte]
+	/***********************************************************************
+	 - Timer 2 Reload Low Byte = 0xC5
+	 ***********************************************************************/
+	TMR2RLL = (0xC5 << TMR2RLL_TMR2RLL__SHIFT);
+	// [TMR2RLL - Timer 2 Reload Low Byte]$
+
+	// $[TMR2CN0]
+	// [TMR2CN0]$
+
+	// $[Timer Restoration]
+	// Restore Timer Configuration
+	TMR2CN0 |= TMR2CN0_TR2_save;
 	// [Timer Restoration]$
 
 }

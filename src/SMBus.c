@@ -53,7 +53,6 @@ void SMB_Write(uint8_t target, uint8_t cnt)
 	TARGET = target;
 	nMasterWrite = cnt;
 	SMB0CN0_STA = 1;					// Start transfer
-	TMR2CN0 |= TMR2CN0_TR2__RUN;		// Enable timeout timer
 }
 
 //-----------------------------------------------------------------------------
@@ -79,9 +78,6 @@ SI_INTERRUPT(SMBUS0_ISR, SMBUS0_IRQn)
 	static bool arbitration_lost = 0;	// Used by the ISR to flag whether
 										// arbitration was lost and the transfer
 										// should be rescheduled
-
-	TMR2H = 0;							// Reset timeout timer
-	TMR2L = 0;
 
 	switch (SMB0CN0 & 0xF0)				// Status vector
 	{
@@ -115,7 +111,6 @@ SI_INTERRUPT(SMBUS0_ISR, SMBUS0_IRQn)
 				{
 					SMB0CN0_STO = 1;	// Set SMB0CN_STO to terminate transfer
 
-					TMR2CN0 &= ~(TMR2CN0_TR2__RUN);		// Disable timeout timer
 					SMB_BUSY = false;	// And free SMBus interface
 				}
 			}
@@ -129,7 +124,6 @@ SI_INTERRUPT(SMBUS0_ISR, SMBUS0_IRQn)
 				}
 				else
 				{
-					TMR2CN0 &= ~(TMR2CN0_TR2__RUN);	// Disable timeout timer
 					SMB_BUSY = false;				// Free SMBus
 					NUM_ERRORS = 0;					// Indicate an error occurred
 				}
@@ -164,8 +158,7 @@ SI_INTERRUPT(SMBUS0_ISR, SMBUS0_IRQn)
 		slaveBytesSent = 0;
 
 		if((SMB0DAT & 0xCE) == (MY_ADDR & 0xCE))// Decode address
-		{								// If the received address matches,
-			SMB0CN0_ACK = 1;			// SMB0CN_ACK the received slave address
+		{									// If the received address matches,
 			IS_SLAVE = true;
 			SMB_BUSY = false;
 			if((SMB0DAT & 0x01) == READ)	// If the transfer is a master READ
@@ -188,6 +181,12 @@ SI_INTERRUPT(SMBUS0_ISR, SMBUS0_IRQn)
 			}
 			else
 			{
+				if (DATA_READY)			// Data not processed yet
+				{
+					SMB0CN0_ACK = 0;
+					break;
+				}
+
 				TCH_CMD = SMB0DAT >> 4;
 				switch (TCH_CMD)
 				{
@@ -208,6 +207,7 @@ SI_INTERRUPT(SMBUS0_ISR, SMBUS0_IRQn)
 					break;
 				}
 			}
+			SMB0CN0_ACK = 1;			// SMB0CN_ACK the received slave address
 		}
 		else							// If received slave address does not
 		{								// match,
@@ -221,9 +221,6 @@ SI_INTERRUPT(SMBUS0_ISR, SMBUS0_IRQn)
 
 		if(SMB0CN0_ARBLOST == 0)		// No bus error
 		{
-			if (DATA_READY)				// Previous data not processed yet
-				break;
-
 			// Store incoming data
 			SMB_DATA_IN_SLAVE[slaveBytesReceived++] = SMB0DAT;
 
@@ -302,7 +299,6 @@ SI_INTERRUPT(SMBUS0_ISR, SMBUS0_IRQn)
 		SMB0CN0_STO = 0;
 		SMB0CN0_ACK = 0;
 
-		TMR2CN0 &= ~(TMR2CN0_TR2__RUN);	// Disable timeout timer
 		SMB_BUSY = false;				// Free SMBus
 		IS_SLAVE = false;
 
@@ -332,30 +328,6 @@ SI_INTERRUPT(TIMER3_ISR, TIMER3_IRQn)
 	SMB0CF |= 0x80;						// Re-enable SMBus
 	TMR3CN0 &= ~0x80;					// Clear Timer3 interrupt-pending flag
 	SMB0CN0_STA = 0;
-	TMR2CN0 &= ~(TMR2CN0_TR2__RUN);		// Disable timeout timer
 	SMB_BUSY = false;					// Free SMBus
 	IS_SLAVE = false;
-}
-
-//-----------------------------------------------------------------------------
-// TIMER2_ISR
-//-----------------------------------------------------------------------------
-//
-// TIMER3 ISR Content goes here. Remember to clear flag bits:
-// TMR3CN::TF3H (Timer # High Byte Overflow Flag)
-// TMR3CN::TF3L (Timer # Low Byte Overflow Flag)
-//
-// A Timer3 interrupt indicates an SMBus SCL low timeout.
-// The SMBus is disabled and re-enabled here
-//
-//-----------------------------------------------------------------------------
-SI_INTERRUPT(TIMER2_ISR, TIMER2_IRQn)
-{
-	//SMB0CF &= ~0x80;					// Disable SMBus
-	//SMB0CF |= 0x80;						// Re-enable SMBus
-	TMR2CN0 &= ~0x80;					// Clear Timer2 interrupt-pending flag
-	//SMB0CN0_STA = 0;
-	TMR2CN0 &= ~(TMR2CN0_TR2__RUN);		// Disable timeout timer
-	//SMB_BUSY = false;					// Free SMBus
-	//IS_SLAVE = false;
 }

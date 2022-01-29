@@ -58,6 +58,10 @@
     <property object="TIMER01_0" propertyId="timer01.timer1mode2:8bitcountertimerwithautoreload.targetoverflowfrequency" value="230400"/>
     <property object="TIMER01_0" propertyId="timer01.timer1mode2:8bitcountertimerwithautoreload.timerreloadvalue" value="150"/>
     <property object="TIMER16_2" propertyId="ABPeripheral.included" value="true"/>
+    <property object="TIMER16_2" propertyId="timer16.initandreloadvalue.targetoverflowfrequency" value="240"/>
+    <property object="TIMER16_2" propertyId="timer16.initandreloadvalue.timerreloadvalue" value="57029"/>
+    <property object="TIMER16_2" propertyId="timer16.reloadhighbyte.reloadhighbyte" value="222"/>
+    <property object="TIMER16_2" propertyId="timer16.reloadlowbyte.reloadlowbyte" value="197"/>
     <property object="TIMER16_3" propertyId="ABPeripheral.included" value="true"/>
     <property object="TIMER16_3" propertyId="timer16.control.runcontrol" value="Start"/>
     <property object="TIMER16_3" propertyId="timer16.control.timerrunningstate" value="Timer is Running"/>
