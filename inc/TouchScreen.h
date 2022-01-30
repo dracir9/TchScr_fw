@@ -44,7 +44,7 @@
 #define TCH_RELEASE	3
 #define TCH_FREE	4
 
-#define MAX_BUTTONS	20
+#define MAX_BUTTONS	28
 
 typedef struct
 {
