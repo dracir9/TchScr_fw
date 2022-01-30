@@ -174,8 +174,6 @@ int main (void)
 				((uint8_t*)&p_min)[0] = SMB_DATA_IN_SLAVE[1];
 				((uint8_t*)&p_max)[1] = SMB_DATA_IN_SLAVE[2];
 				((uint8_t*)&p_max)[0] = SMB_DATA_IN_SLAVE[3];
-				TMR2RLL = SMB_DATA_IN_SLAVE[4];
-				TMR2RLH = SMB_DATA_IN_SLAVE[5];
 				break;
 
 			case TCH_CMD_BTN:
@@ -190,6 +188,8 @@ int main (void)
 				touchIRQ = SMB_DATA_IN_SLAVE[0] & 0x01;
 				buttonIRQ = SMB_DATA_IN_SLAVE[0] & 0x02;
 				flipXY = SMB_DATA_IN_SLAVE[0] & 0x04;
+				TMR2RLL = SMB_DATA_IN_SLAVE[1];
+				TMR2RLH = SMB_DATA_IN_SLAVE[2];
 				break;
 			}
 			DATA_READY = false;

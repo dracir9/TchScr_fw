@@ -195,7 +195,7 @@ SI_INTERRUPT(SMBUS0_ISR, SMBUS0_IRQn)
 					break;
 
 				case TCH_CMD_THR:		// ADDR: 1001 xxx0
-					nSlaveReceive = 6;
+					nSlaveReceive = 4;
 					break;
 
 				case TCH_CMD_BTN:		// ADDR: 1010 xxx0
@@ -203,7 +203,7 @@ SI_INTERRUPT(SMBUS0_ISR, SMBUS0_IRQn)
 					break;
 
 				case TCH_CMD_IRQ:		// ADDR: 1011 xxx0
-					nSlaveReceive = 1;
+					nSlaveReceive = 3;
 					break;
 				}
 			}
