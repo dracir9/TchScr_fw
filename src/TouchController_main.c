@@ -97,7 +97,7 @@ int main (void)
 						point.y = (int32_t)(touchPoint.y - ry_min) * dy/ry_max;
 					}
 
-					if (abs(LAST_POINT.x - point.x) > 4 || abs(LAST_POINT.y - point.y) > 4)
+					if (abs(LAST_POINT.x - point.x) > 2 || abs(LAST_POINT.y - point.y) > 2)
 						valid = false;
 
 					LAST_POINT = point;
