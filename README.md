@@ -28,10 +28,22 @@ This avoids having to constantly poll the EFM8BB to check for new events. Once t
 ### Commands
 The touch controller uses a 7-bit address + one read/writte bite. It will respont to these addresses:
 - Read
-  + 0x81
-  + 0x91
+  + 0x81: Get last touch point
+
+    Returns 4 bytes representing the X and Y coordinates as to int16
+  + 0x91: Get last button event
+
+    Return 1 byte representing the event
 - Writte
-  + 0x40
-  + 0x48
-  + 0x50
-  + 0x58
+  + 0x40: Set calibration data
+
+    Reads 12 bytes
+  + 0x48: Set threshold
+
+    Reads 4 bytes
+  + 0x50: Set button
+
+    Reads 10 bytes
+  + 0x58: Set event configuration
+
+    Reads 3 bytes
