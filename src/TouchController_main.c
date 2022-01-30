@@ -174,6 +174,8 @@ int main (void)
 				((uint8_t*)&p_min)[0] = SMB_DATA_IN_SLAVE[1];
 				((uint8_t*)&p_max)[1] = SMB_DATA_IN_SLAVE[2];
 				((uint8_t*)&p_max)[0] = SMB_DATA_IN_SLAVE[3];
+				TMR2RLL = SMB_DATA_IN_SLAVE[4];
+				TMR2RLH = SMB_DATA_IN_SLAVE[5];
 				break;
 
 			case TCH_CMD_BTN:
