@@ -14,7 +14,7 @@
 // Global holder for SMBus master data. All transmit data is read from here
 // while in master mode
 // Master->Slave
-uint8_t SMB_DATA_OUT_MASTER[4] = {0};
+uint8_t SMB_DATA_OUT_MASTER[5] = {0};
 
 // Global holder for SMBus slave data. All receive data is written here
 // while slave mode
@@ -25,7 +25,7 @@ uint8_t TCH_CMD = 0;
 // Global holder for SMBus slave data. All transmit data is read from here
 // while in slave mode
 // Slave->Master
-uint8_t SMB_DATA_OUT_SLAVE[4] = {0};
+uint8_t SMB_DATA_OUT_SLAVE[5] = {0};
 
 volatile bool DATA_READY = false;		// Data received in slave mode
 
@@ -87,7 +87,7 @@ SI_INTERRUPT(SMBUS0_ISR, SMBUS0_IRQn)
 	case SMB_MTSTA:
 		SMB0DAT = TARGET & 0xFE;		// Load address + R/W bit
 		SMB0CN0_STA = 0;				// Manually clear START bit
-		masterBytesSent = 0xFF;
+		masterBytesSent = 0;
 
 		break;
 
@@ -98,19 +98,13 @@ SI_INTERRUPT(SMBUS0_ISR, SMBUS0_IRQn)
 		{
 			if(SMB0CN0_ACK)				// Slave SMB0CN_ACK?
 			{
-				if (masterBytesSent == 0xFF)
-				{
-					SMB0DAT = nMasterWrite;
-					masterBytesSent = 0;
-				}
-				else if(masterBytesSent < nMasterWrite)	// If there are bytes remaining
+				if(masterBytesSent < nMasterWrite)	// If there are bytes remaining
 				{						// Send data byte
 					SMB0DAT = SMB_DATA_OUT_MASTER[masterBytesSent++];
 				}
 				else                    // All bytes sent
 				{
 					SMB0CN0_STO = 1;	// Set SMB0CN_STO to terminate transfer
-
 					SMB_BUSY = false;	// And free SMBus interface
 				}
 			}
@@ -165,16 +159,12 @@ SI_INTERRUPT(SMBUS0_ISR, SMBUS0_IRQn)
 			{
 				if ((SMB0DAT & 0x30) == 0)	// ADDR: 1000 xxx1
 				{
-					nSlaveSend = 4;
-					SMB_DATA_OUT_SLAVE[0] = ((uint8_t*)&LAST_POINT.x)[1];
-					SMB_DATA_OUT_SLAVE[1] = ((uint8_t*)&LAST_POINT.x)[0];
-					SMB_DATA_OUT_SLAVE[2] = ((uint8_t*)&LAST_POINT.y)[1];
-					SMB_DATA_OUT_SLAVE[3] = ((uint8_t*)&LAST_POINT.y)[0];
-				}
-				else					// ADDR: 10yy xxx1
-				{
-					nSlaveSend = 1;
+					nSlaveSend = 5;
 					SMB_DATA_OUT_SLAVE[0] = activeBtn;
+					SMB_DATA_OUT_SLAVE[1] = ((uint8_t*)&LAST_POINT.x)[1];
+					SMB_DATA_OUT_SLAVE[2] = ((uint8_t*)&LAST_POINT.x)[0];
+					SMB_DATA_OUT_SLAVE[3] = ((uint8_t*)&LAST_POINT.y)[1];
+					SMB_DATA_OUT_SLAVE[4] = ((uint8_t*)&LAST_POINT.y)[0];
 				}
 				// Prepare outgoing byte
 				SMB0DAT = SMB_DATA_OUT_SLAVE[slaveBytesSent++];

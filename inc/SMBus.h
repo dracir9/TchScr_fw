@@ -43,9 +43,9 @@
 #define TCH_CMD_BTN				0x0A	// Modify button
 #define TCH_CMD_IRQ				0x0B	// Modify touch notifications
 
-extern uint8_t SMB_DATA_OUT_MASTER[4];
+extern uint8_t SMB_DATA_OUT_MASTER[5];
 extern uint8_t SMB_DATA_IN_SLAVE[12];
-extern uint8_t SMB_DATA_OUT_SLAVE[4];
+extern uint8_t SMB_DATA_OUT_SLAVE[5];
 
 extern volatile bool SMB_BUSY;
 extern volatile bool DATA_READY;

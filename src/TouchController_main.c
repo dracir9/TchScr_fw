@@ -31,6 +31,7 @@ uint16_t p_max = 20000;
 bool touchIRQ = false;
 bool buttonIRQ = false;
 bool flipXY = false;
+bool sendEvent = false;
 volatile bool IS_READY = true;
 
 //-----------------------------------------------------------------------------
@@ -123,27 +124,30 @@ int main (void)
 				else if (lastPressed && !pressed) touchState = TCH_RELEASE;
 				else touchState = TCH_FREE;
 
-				// Send notifications
+				checkButtons(point.x, point.y);
 
+				// Send notifications
 				if (touchIRQ && IS_READY)
 				{
-					while(SMB_BUSY);
-					// Fill data to send
-					SMB_DATA_OUT_MASTER[0] = ((uint8_t*)&point.x)[1];
-					SMB_DATA_OUT_MASTER[1] = ((uint8_t*)&point.x)[0];
-					SMB_DATA_OUT_MASTER[2] = ((uint8_t*)&point.y)[1];
-					SMB_DATA_OUT_MASTER[3] = ((uint8_t*)&point.y)[0];
-					// Start write
-					SMB_Write(ESP_ADDR, 4);
+					sendEvent = true;
 					IS_READY = false;
 					TMR2CN0 |= TMR2CN0_TR2__RUN;		// Enable timeout timer
 				}
 
-				if (checkButtons(point.x, point.y) != -1 && buttonIRQ)
+
+				if (activeBtn != -1 && buttonIRQ)
+					sendEvent = true;
+
+				if (sendEvent)
 				{
 					while(SMB_BUSY);
 					SMB_DATA_OUT_MASTER[0] = activeBtn;
-					SMB_Write(ESP_ADDR, 1);
+					SMB_DATA_OUT_MASTER[1] = ((uint8_t*)&point.x)[1];
+					SMB_DATA_OUT_MASTER[2] = ((uint8_t*)&point.x)[0];
+					SMB_DATA_OUT_MASTER[3] = ((uint8_t*)&point.y)[1];
+					SMB_DATA_OUT_MASTER[4] = ((uint8_t*)&point.y)[0];
+					SMB_Write(ESP_ADDR, 5);
+					sendEvent = false;
 				}
 
 				lastPressed = pressed;

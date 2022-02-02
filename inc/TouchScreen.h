@@ -44,6 +44,13 @@
 #define TCH_RELEASE	3
 #define TCH_FREE	4
 
+// Events
+#define EVNT_IDLE		0
+#define EVNT_PRESS		0x20
+#define EVNT_HOLD_STRT	0x40
+#define EVNT_HOLD_END	0x60
+#define EVNT_RELEASE	0x80
+
 #define MAX_BUTTONS	28
 
 typedef struct
