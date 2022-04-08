@@ -33,6 +33,7 @@ extern void enter_DefaultMode_from_RESET(void)
 	TIMER16_3_enter_DefaultMode_from_RESET();
 	TIMER_SETUP_0_enter_DefaultMode_from_RESET();
 	SMBUS_0_enter_DefaultMode_from_RESET();
+	EXTINT_0_enter_DefaultMode_from_RESET();
 	INTERRUPT_0_enter_DefaultMode_from_RESET();
 	// [Config Calls]$
 
@@ -42,34 +43,34 @@ extern void PORTS_0_enter_DefaultMode_from_RESET(void)
 {
 	// $[P0 - Port 0 Pin Latch]
 	/***********************************************************************
-	 - P0.0 is low. Set P0.0 to drive low
-	 - P0.1 is high. Set P0.1 to drive or float high
+	 - P0.0 is high. Set P0.0 to drive or float high
+	 - P0.1 is low. Set P0.1 to drive low
 	 - P0.2 is high. Set P0.2 to drive or float high
-	 - P0.3 is high. Set P0.3 to drive or float high
+	 - P0.3 is low. Set P0.3 to drive low
 	 - P0.4 is high. Set P0.4 to drive or float high
 	 - P0.5 is high. Set P0.5 to drive or float high
-	 - P0.6 is low. Set P0.6 to drive low
+	 - P0.6 is high. Set P0.6 to drive or float high
 	 - P0.7 is high. Set P0.7 to drive or float high
 	 ***********************************************************************/
-	P0 = P0_B0__LOW | P0_B1__HIGH | P0_B2__HIGH | P0_B3__HIGH | P0_B4__HIGH
-			| P0_B5__HIGH | P0_B6__LOW | P0_B7__HIGH;
+	P0 = P0_B0__HIGH | P0_B1__LOW | P0_B2__HIGH | P0_B3__LOW | P0_B4__HIGH
+			| P0_B5__HIGH | P0_B6__HIGH | P0_B7__HIGH;
 	// [P0 - Port 0 Pin Latch]$
 
 	// $[P0MDOUT - Port 0 Output Mode]
 	/***********************************************************************
-	 - P0.0 output is push-pull
-	 - P0.1 output is open-drain
+	 - P0.0 output is open-drain
+	 - P0.1 output is push-pull
 	 - P0.2 output is open-drain
-	 - P0.3 output is open-drain
+	 - P0.3 output is push-pull
 	 - P0.4 output is open-drain
 	 - P0.5 output is open-drain
-	 - P0.6 output is push-pull
+	 - P0.6 output is open-drain
 	 - P0.7 output is open-drain
 	 ***********************************************************************/
-	P0MDOUT = P0MDOUT_B0__PUSH_PULL | P0MDOUT_B1__OPEN_DRAIN
-			| P0MDOUT_B2__OPEN_DRAIN | P0MDOUT_B3__OPEN_DRAIN
+	P0MDOUT = P0MDOUT_B0__OPEN_DRAIN | P0MDOUT_B1__PUSH_PULL
+			| P0MDOUT_B2__OPEN_DRAIN | P0MDOUT_B3__PUSH_PULL
 			| P0MDOUT_B4__OPEN_DRAIN | P0MDOUT_B5__OPEN_DRAIN
-			| P0MDOUT_B6__PUSH_PULL | P0MDOUT_B7__OPEN_DRAIN;
+			| P0MDOUT_B6__OPEN_DRAIN | P0MDOUT_B7__OPEN_DRAIN;
 	// [P0MDOUT - Port 0 Output Mode]$
 
 	// $[P0MDIN - Port 0 Input Mode]
@@ -528,6 +529,21 @@ extern void TIMER16_2_enter_DefaultMode_from_RESET(void)
 	// Restore Timer Configuration
 	TMR2CN0 |= TMR2CN0_TR2_save;
 	// [Timer Restoration]$
+
+}
+
+extern void EXTINT_0_enter_DefaultMode_from_RESET(void)
+{
+	// $[IT01CF - INT0/INT1 Configuration]
+	/***********************************************************************
+	 - INT0 input is active low
+	 - Select P0.2
+	 - INT1 input is active low
+	 - Select P0.3
+	 ***********************************************************************/
+	IT01CF = IT01CF_IN0PL__ACTIVE_LOW | IT01CF_IN0SL__P0_2
+			| IT01CF_IN1PL__ACTIVE_LOW | IT01CF_IN1SL__P0_3;
+	// [IT01CF - INT0/INT1 Configuration]$
 
 }
 
