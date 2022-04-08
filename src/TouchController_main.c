@@ -135,7 +135,7 @@ int main (void)
 				}
 
 
-				if (activeBtn != -1 && buttonIRQ)
+				if (activeBtn != EVNT_IDLE && buttonIRQ)
 					sendEvent = true;
 
 				if (sendEvent)
