@@ -84,12 +84,23 @@ int8_t checkButtons(int16_t x, int16_t y)
 
 void editButton(uint8_t id, uint8_t trg, int16_t xl, int16_t xh, int16_t yl, int16_t yh)
 {
-	if (id >= MAX_BUTTONS) id = MAX_BUTTONS -1;
-	buttonArr[id].trigger = trg;
-	buttonArr[id].xmin = xl;
-	buttonArr[id].xmax = xh;
-	buttonArr[id].ymin = yl;
-	buttonArr[id].ymax = yh;
+	int i = 0;
+	if (id == 31)
+	{
+		for (i = 0; i < MAX_BUTTONS; ++i)
+		{
+			buttonArr[i].trigger = 0;
+		}
+	}
+	else
+	{
+		if (id >= MAX_BUTTONS) id = MAX_BUTTONS -1;
+		buttonArr[id].trigger = trg;
+		buttonArr[id].xmin = xl;
+		buttonArr[id].xmax = xh;
+		buttonArr[id].ymin = yl;
+		buttonArr[id].ymax = yh;
+	}
 }
 
 //SI_REENTRANT_FUNCTION(startTchRead, void, (bool X, bool Y, bool Z))
