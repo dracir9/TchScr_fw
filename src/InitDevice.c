@@ -539,10 +539,10 @@ extern void EXTINT_0_enter_DefaultMode_from_RESET(void)
 	 - INT0 input is active low
 	 - Select P0.2
 	 - INT1 input is active low
-	 - Select P0.3
+	 - Select P0.0
 	 ***********************************************************************/
 	IT01CF = IT01CF_IN0PL__ACTIVE_LOW | IT01CF_IN0SL__P0_2
-			| IT01CF_IN1PL__ACTIVE_LOW | IT01CF_IN1SL__P0_3;
+			| IT01CF_IN1PL__ACTIVE_LOW | IT01CF_IN1SL__P0_0;
 	// [IT01CF - INT0/INT1 Configuration]$
 
 }

@@ -17,7 +17,6 @@
     <property object="DefaultMode" propertyId="mode.diagramLocation" value="100, 100"/>
     <property object="EXTINT_0" propertyId="ABPeripheral.included" value="true"/>
     <property object="EXTINT_0" propertyId="extint.int0int1configuration.int0portpinselection" value="P0.2"/>
-    <property object="EXTINT_0" propertyId="extint.int0int1configuration.int1portpinselection" value="P0.3"/>
     <property object="INTERRUPT_0" propertyId="ABPeripheral.included" value="true"/>
     <property object="INTERRUPT_0" propertyId="interrupt.extendedinterruptenable1.enableadc0conversioncompleteinterrupt" value="Enabled"/>
     <property object="INTERRUPT_0" propertyId="interrupt.extendedinterruptenable1.enablesmbussmb0interrupt" value="Enabled"/>

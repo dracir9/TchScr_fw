@@ -27,16 +27,16 @@
 #define XP_PIN 	P0_B2
 #define XM_PIN 	P0_B0
 #define YP_PIN 	P0_B1
-#define YM_PIN 	P0_B2
+#define YM_PIN 	P0_B3
 
 #define XP_PIN_MSK 	P0MDOUT_B2__BMASK
 #define XM_PIN_MSK 	P0MDOUT_B0__BMASK
 #define YP_PIN_MSK 	P0MDOUT_B1__BMASK
-#define YM_PIN_MSK 	P0MDOUT_B2__BMASK
+#define YM_PIN_MSK 	P0MDOUT_B3__BMASK
 
-#define X_READ		ADC0MX_ADC0MX__ADC0P0	// ADC channel to use to read X axis (must map to YM or YP pin)
-#define Y_READ		ADC0MX_ADC0MX__ADC0P1	// ADC channel to use to read Y axis (must map to XM or XP pin)
-#define Z_READ		ADC0MX_ADC0MX__ADC0P1
+#define X_READ		ADC0MX_ADC0MX__ADC0P3	// ADC channel to use to read X axis (must map to YM or YP pin)
+#define Y_READ		ADC0MX_ADC0MX__ADC0P2	// ADC channel to use to read Y axis (must map to XM or XP pin)
+#define Z_READ		ADC0MX_ADC0MX__ADC0P2
 
 //
 #define TCH_PRESS	1

@@ -134,8 +134,7 @@ int main (void)
 					TMR2CN0 |= TMR2CN0_TR2__RUN;		// Enable timeout timer
 				}
 
-
-				if (activeBtn != EVNT_IDLE && buttonIRQ)
+				if (buttonIRQ && activeBtn != EVNT_IDLE)
 					sendEvent = true;
 
 				if (sendEvent)
