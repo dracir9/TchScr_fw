@@ -10,7 +10,7 @@
 volatile uint8_t readTchState;
 volatile bool readComplete = false;
 volatile Vec3 touchPoint;
-volatile uint8_t pressCnt = 3;
+volatile uint8_t pressCnt = 0;
 
 int8_t activeBtn = EVNT_IDLE;	// First 3 bits: Event ID || Last 5 bits: Button ID
 int8_t lastHoldBtn = -1;
@@ -44,16 +44,16 @@ int8_t checkButtons(int16_t x, int16_t y)
 				anyHold = true;
 				if (lastHoldBtn != i)
 				{
-					if (TCON_TR1 == 0)
+					if (pressCnt == 0)
 						activeBtn = lastHoldBtn | EVNT_HOLD_END;	// Hold end
 					lastHoldBtn = i;
-					pressCnt = 3; // Reset count
+					pressCnt = 8; // Reset count
 					TCON_TR1 = 1; // Enable timer
 				}
-				else if (pressCnt > buttonArr[i].trigger)
+				else if (pressCnt > buttonArr[i].trigger & 0xF8)
 				{
-					pressCnt = 3;
 					TCON_TR1 = 0;	// Stop timer to prevent re-triggering
+					pressCnt = 0;
 					activeBtn = i | EVNT_HOLD_STRT;				// Hold start
 					return activeBtn;
 				}
@@ -71,7 +71,7 @@ int8_t checkButtons(int16_t x, int16_t y)
 
 	if (!anyHold)
 	{
-		if (lastHoldBtn != -1 && activeBtn == EVNT_IDLE && TCON_TR1 == 0)
+		if (lastHoldBtn != -1 && activeBtn == EVNT_IDLE && pressCnt == 0)
 			activeBtn = lastHoldBtn | EVNT_HOLD_END;				// Hold end
 		lastHoldBtn = -1;
 	}
