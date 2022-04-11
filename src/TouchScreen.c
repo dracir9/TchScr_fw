@@ -10,7 +10,7 @@
 volatile uint8_t readTchState;
 volatile bool readComplete = false;
 volatile Vec3 touchPoint;
-volatile uint8_t pressCnt = 0;
+volatile uint8_t pressCnt = 1;
 
 int8_t activeBtn = EVNT_IDLE;	// First 3 bits: Event ID || Last 5 bits: Button ID
 int8_t lastHoldBtn = -1;
@@ -72,7 +72,10 @@ int8_t checkButtons(int16_t x, int16_t y)
 	if (!anyHold)
 	{
 		if (lastHoldBtn != -1 && activeBtn == EVNT_IDLE && pressCnt == 0)
+		{
 			activeBtn = lastHoldBtn | EVNT_HOLD_END;				// Hold end
+			pressCnt = 1;
+		}
 		lastHoldBtn = -1;
 	}
 
