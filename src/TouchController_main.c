@@ -79,8 +79,7 @@ int main (void)
 			valid = true;
 			if (touchPoint.z > p_min && touchPoint.z < p_max)
 			{
-				pressed = true;
-				if (touchPoint.z > lastP)	// Pressure is increasing
+				if (touchPoint.z < lastP)	// Pressure is decreasing
 				{
 					// Interpolate
 					//point.x = x_min + (point.x - rx_min) * (x_max - x_min)/(rx_max-rx_min); // -> 41 Cycles
@@ -100,6 +99,8 @@ int main (void)
 
 					if (abs(LAST_POINT.x - point.x) > 2 || abs(LAST_POINT.y - point.y) > 2)
 						valid = false;
+					else
+						pressed = true;
 
 					LAST_POINT = point;
 				}
@@ -170,6 +171,8 @@ int main (void)
 				((uint8_t*)&ry_min)[0] = SMB_DATA_IN_SLAVE[9];
 				((uint8_t*)&ry_max)[1] = SMB_DATA_IN_SLAVE[10];
 				((uint8_t*)&ry_max)[0] = SMB_DATA_IN_SLAVE[11];
+				rx_max = rx_max - rx_min;
+				ry_max = ry_max - ry_min;
 				break;
 
 			case TCH_CMD_THR:
