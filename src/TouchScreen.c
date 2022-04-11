@@ -50,7 +50,7 @@ int8_t checkButtons(int16_t x, int16_t y)
 					pressCnt = 8; // Reset count
 					TCON_TR1 = 1; // Enable timer
 				}
-				else if (pressCnt > buttonArr[i].trigger & 0xF8)
+				else if (pressCnt > (buttonArr[i].trigger & 0xF8))
 				{
 					TCON_TR1 = 0;	// Stop timer to prevent re-triggering
 					pressCnt = 0;
