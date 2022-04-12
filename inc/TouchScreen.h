@@ -48,10 +48,11 @@
 #define EVNT_IDLE		0
 #define EVNT_PRESS		0x20
 #define EVNT_HOLD_STRT	0x40
-#define EVNT_HOLD_END	0x60
-#define EVNT_RELEASE	0x80
+#define EVNT_HOLD_TICK	0x60
+#define EVNT_HOLD_END	0x80
+#define EVNT_RELEASE	0xA0
 
-#define MAX_BUTTONS	28
+#define MAX_BUTTONS	25
 
 typedef struct
 {
@@ -68,7 +69,8 @@ typedef struct
 
 typedef struct
 {
-	uint8_t trigger;
+	uint8_t holdTime;
+	uint8_t state; // Bit field
 	int16_t xmin;
 	int16_t xmax;
 	int16_t ymin;
@@ -76,7 +78,7 @@ typedef struct
 } Button;
 
 int8_t checkButtons(int16_t x, int16_t y);
-void editButton(uint8_t id, uint8_t trg, int16_t xl, int16_t xh, int16_t yl, int16_t yh);
+void editButton(uint8_t id, uint8_t trg, uint8_t hold, int16_t xl, int16_t xh, int16_t yl, int16_t yh);
 //SI_REENTRANT_FUNCTION_PROTO(startTchRead, void, (bool X, bool Y, bool Z));
 void startTchRead();
 void setGPIO_X();

@@ -10,7 +10,7 @@
 volatile uint8_t readTchState;
 volatile bool readComplete = false;
 volatile Vec3 touchPoint;
-volatile uint8_t pressCnt = 1;
+volatile uint8_t pressCnt = 254;
 
 int8_t activeBtn = EVNT_IDLE;	// First 3 bits: Event ID || Last 5 bits: Button ID
 int8_t lastHoldBtn = -1;
@@ -34,32 +34,37 @@ int8_t checkButtons(int16_t x, int16_t y)
 		if (x >= buttonArr[i].xmin && x < buttonArr[i].xmax &&
 			y >= buttonArr[i].ymin && y < buttonArr[i].ymax)
 		{
-			if ((buttonArr[i].trigger & 0x01) && touchState == TCH_PRESS) // Press events
+			if ((buttonArr[i].state & 0x01) && touchState == TCH_PRESS) // Press events
 			{
 				activeBtn = i | EVNT_PRESS;
 			}
 
-			if ((buttonArr[i].trigger & 0x02) && touchState == TCH_HOLD) // Hold Events
+			if ((buttonArr[i].state & 0x02) && touchState == TCH_HOLD) // Hold Events
 			{
 				anyHold = true;
 				if (lastHoldBtn != i)
 				{
-					if (pressCnt == 0)
+					if (pressCnt == 255)
 						activeBtn = lastHoldBtn | EVNT_HOLD_END;	// Hold end
 					lastHoldBtn = i;
-					pressCnt = 8; // Reset count
+					pressCnt = buttonArr[i].holdTime; // Reset count
 					TCON_TR1 = 1; // Enable timer
 				}
-				else if (pressCnt > (buttonArr[i].trigger & 0xF8))
+				else if (!pressCnt)
 				{
-					TCON_TR1 = 0;	// Stop timer to prevent re-triggering
-					pressCnt = 0;
+					TCON_TR1 = 0; // Stop timer
+					pressCnt = 255;
 					activeBtn = i | EVNT_HOLD_STRT;				// Hold start
 					return activeBtn;
 				}
 			}
 
-			if (buttonArr[i].trigger & 0x04) // Release events
+			if ((buttonArr[i].state & 0x04) && pressCnt == 255)
+			{
+				activeBtn = i | EVNT_HOLD_TICK;
+			}
+
+			if (buttonArr[i].state & 0x08) // Release events
 			{
 				if (touchState == TCH_PRESS)
 					lastPressBtn = i;
@@ -71,10 +76,10 @@ int8_t checkButtons(int16_t x, int16_t y)
 
 	if (!anyHold)
 	{
-		if (lastHoldBtn != -1 && activeBtn == EVNT_IDLE && pressCnt == 0)
+		if (lastHoldBtn != -1 && activeBtn == EVNT_IDLE && pressCnt == 255)
 		{
 			activeBtn = lastHoldBtn | EVNT_HOLD_END;				// Hold end
-			pressCnt = 1;
+			pressCnt = 254;
 		}
 		lastHoldBtn = -1;
 	}
@@ -85,20 +90,21 @@ int8_t checkButtons(int16_t x, int16_t y)
 	return activeBtn;
 }
 
-void editButton(uint8_t id, uint8_t trg, int16_t xl, int16_t xh, int16_t yl, int16_t yh)
+void editButton(uint8_t id, uint8_t trg, uint8_t hold, int16_t xl, int16_t xh, int16_t yl, int16_t yh)
 {
 	int i = 0;
 	if (id == 31)
 	{
 		for (i = 0; i < MAX_BUTTONS; ++i)
 		{
-			buttonArr[i].trigger = 0;
+			buttonArr[i].state = 0;
 		}
 	}
 	else
 	{
 		if (id >= MAX_BUTTONS) id = MAX_BUTTONS -1;
-		buttonArr[id].trigger = trg;
+		buttonArr[id].holdTime = hold & 0x7F;
+		buttonArr[id].state = trg & 0x0F;
 		buttonArr[id].xmin = xl;
 		buttonArr[id].xmax = xh;
 		buttonArr[id].ymin = yl;
@@ -224,7 +230,7 @@ SI_INTERRUPT(ADC0EOC_ISR, ADC0EOC_IRQn)
 		break;
 
 	case 3:	// Z Position
-		if (ADC0 == 0)
+		if (!ADC0)
 			readPoint.z = -1;
 		else
 			readPoint.z = (int32_t)(1024-ADC0)*readPoint.x/ADC0 - readPoint.y;
@@ -247,8 +253,10 @@ SI_INTERRUPT(ADC0EOC_ISR, ADC0EOC_IRQn)
 //-----------------------------------------------------------------------------
 SI_INTERRUPT (TIMER1_ISR, TIMER1_IRQn)
 {
-	// Increment counter
-	pressCnt += 4;	// Keep first 2 bits unchanged
+	// Decrement counter
+	pressCnt--;
+	if (!pressCnt)
+		TCON_TR1 = 0; // Stop timer
 
 	// Start at 14494
 	TH1 = 0x38;

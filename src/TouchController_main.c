@@ -183,11 +183,11 @@ int main (void)
 				break;
 
 			case TCH_CMD_BTN:
-				editButton(SMB_DATA_IN_SLAVE[0], SMB_DATA_IN_SLAVE[1],
-				SMB_DATA_IN_SLAVE[2] | SMB_DATA_IN_SLAVE[3] << 8,
+				editButton(SMB_DATA_IN_SLAVE[0], SMB_DATA_IN_SLAVE[1], SMB_DATA_IN_SLAVE[2],
 				SMB_DATA_IN_SLAVE[4] | SMB_DATA_IN_SLAVE[5] << 8,
 				SMB_DATA_IN_SLAVE[6] | SMB_DATA_IN_SLAVE[7] << 8,
-				SMB_DATA_IN_SLAVE[8] | SMB_DATA_IN_SLAVE[9] << 8);
+				SMB_DATA_IN_SLAVE[8] | SMB_DATA_IN_SLAVE[9] << 8,
+				SMB_DATA_IN_SLAVE[10] | SMB_DATA_IN_SLAVE[11] << 8);
 				break;
 
 			case TCH_CMD_IRQ:
