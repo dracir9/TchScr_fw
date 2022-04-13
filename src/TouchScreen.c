@@ -26,6 +26,7 @@ bool wakeFromIdle = false;
 int8_t checkButtons(int16_t x, int16_t y)
 {
 	uint8_t i = 0;
+	uint8_t state = 0;
 	bool anyHold = false;
 	activeBtn = EVNT_IDLE;
 
@@ -34,12 +35,13 @@ int8_t checkButtons(int16_t x, int16_t y)
 		if (x >= buttonArr[i].xmin && x < buttonArr[i].xmax &&
 			y >= buttonArr[i].ymin && y < buttonArr[i].ymax)
 		{
-			if ((buttonArr[i].state & 0x01) && touchState == TCH_PRESS) // Press events
+			state = buttonArr[i].state;
+			if ((state & 0x01) && touchState == TCH_PRESS) // Press events
 			{
 				activeBtn = i | EVNT_PRESS;
 			}
 
-			if ((buttonArr[i].state & 0x02) && touchState == TCH_HOLD) // Hold Events
+			if ((state & 0x02) && touchState == TCH_HOLD) // Hold Events
 			{
 				anyHold = true;
 				if (lastHoldBtn != i)
@@ -59,12 +61,12 @@ int8_t checkButtons(int16_t x, int16_t y)
 				}
 			}
 
-			if ((buttonArr[i].state & 0x04) && pressCnt == 255)
+			if ((state & 0x04) && pressCnt == 255)
 			{
 				activeBtn = i | EVNT_HOLD_TICK;
 			}
 
-			if (buttonArr[i].state & 0x08) // Release events
+			if (state & 0x08) // Release events
 			{
 				if (touchState == TCH_PRESS)
 					lastPressBtn = i;
