@@ -19,8 +19,7 @@
 //==============================================================================
 // enter_DefaultMode_from_RESET
 //==============================================================================
-extern void enter_DefaultMode_from_RESET(void)
-{
+extern void enter_DefaultMode_from_RESET(void) {
 	// $[Config Calls]
 	WDT_0_enter_DefaultMode_from_RESET();
 	PORTS_0_enter_DefaultMode_from_RESET();
@@ -32,15 +31,13 @@ extern void enter_DefaultMode_from_RESET(void)
 	TIMER16_2_enter_DefaultMode_from_RESET();
 	TIMER16_3_enter_DefaultMode_from_RESET();
 	TIMER_SETUP_0_enter_DefaultMode_from_RESET();
-	SMBUS_0_enter_DefaultMode_from_RESET();
 	EXTINT_0_enter_DefaultMode_from_RESET();
 	INTERRUPT_0_enter_DefaultMode_from_RESET();
 	// [Config Calls]$
 
 }
 
-extern void PORTS_0_enter_DefaultMode_from_RESET(void)
-{
+extern void PORTS_0_enter_DefaultMode_from_RESET(void) {
 	// $[P0 - Port 0 Pin Latch]
 	/***********************************************************************
 	 - P0.0 is high. Set P0.0 to drive or float high
@@ -100,8 +97,7 @@ extern void PORTS_0_enter_DefaultMode_from_RESET(void)
 
 }
 
-extern void PBCFG_0_enter_DefaultMode_from_RESET(void)
-{
+extern void PBCFG_0_enter_DefaultMode_from_RESET(void) {
 	// $[XBR2 - Port I/O Crossbar 2]
 	/***********************************************************************
 	 - Weak Pullups enabled 
@@ -114,19 +110,6 @@ extern void PBCFG_0_enter_DefaultMode_from_RESET(void)
 	// [PRTDRV - Port Drive Strength]$
 
 	// $[XBR0 - Port I/O Crossbar 0]
-	/***********************************************************************
-	 - UART I/O unavailable at Port pin
-	 - SPI I/O unavailable at Port pins
-	 - SMBus 0 I/O routed to Port pins
-	 - CP0 unavailable at Port pin
-	 - Asynchronous CP0 unavailable at Port pin
-	 - CP1 unavailable at Port pin
-	 - Asynchronous CP1 unavailable at Port pin
-	 - SYSCLK unavailable at Port pin
-	 ***********************************************************************/
-	XBR0 = XBR0_URT0E__DISABLED | XBR0_SPI0E__DISABLED | XBR0_SMB0E__ENABLED
-			| XBR0_CP0E__DISABLED | XBR0_CP0AE__DISABLED | XBR0_CP1E__DISABLED
-			| XBR0_CP1AE__DISABLED | XBR0_SYSCKE__DISABLED;
 	// [XBR0 - Port I/O Crossbar 0]$
 
 	// $[XBR1 - Port I/O Crossbar 1]
@@ -134,8 +117,7 @@ extern void PBCFG_0_enter_DefaultMode_from_RESET(void)
 
 }
 
-extern void WDT_0_enter_DefaultMode_from_RESET(void)
-{
+extern void WDT_0_enter_DefaultMode_from_RESET(void) {
 	// $[Watchdog Timer Init Variable Declarations]
 	uint32_t i;
 	bool ea;
@@ -151,8 +133,7 @@ extern void WDT_0_enter_DefaultMode_from_RESET(void)
 	WDTCN = 0xA5;
 
 	// Add 2 LFO cycle delay before disabling WDT (Erratum WDT_E102)
-	for (i = 0; i < (2 * 3062500UL) / (10000 * 3); i++)
-	{
+	for (i = 0; i < (2 * 3062500UL) / (10000 * 3); i++) {
 		NOP();
 	}
 
@@ -167,8 +148,7 @@ extern void WDT_0_enter_DefaultMode_from_RESET(void)
 
 }
 
-extern void PORTS_1_enter_DefaultMode_from_RESET(void)
-{
+extern void PORTS_1_enter_DefaultMode_from_RESET(void) {
 	// $[P1 - Port 1 Pin Latch]
 	// [P1 - Port 1 Pin Latch]$
 
@@ -197,8 +177,7 @@ extern void PORTS_1_enter_DefaultMode_from_RESET(void)
 
 }
 
-extern void ADC_0_enter_DefaultMode_from_RESET(void)
-{
+extern void ADC_0_enter_DefaultMode_from_RESET(void) {
 	// $[ADC0CN1 - ADC0 Control 1]
 	/***********************************************************************
 	 - Enable the common mode buffer
@@ -260,8 +239,7 @@ extern void ADC_0_enter_DefaultMode_from_RESET(void)
 
 }
 
-extern void CLOCK_0_enter_DefaultMode_from_RESET(void)
-{
+extern void CLOCK_0_enter_DefaultMode_from_RESET(void) {
 	// $[CLKSEL - Clock Select]
 	/***********************************************************************
 	 - Clock derived from the Internal High-Frequency Oscillator
@@ -272,8 +250,7 @@ extern void CLOCK_0_enter_DefaultMode_from_RESET(void)
 
 }
 
-extern void TIMER01_0_enter_DefaultMode_from_RESET(void)
-{
+extern void TIMER01_0_enter_DefaultMode_from_RESET(void) {
 	// $[Timer Initialization]
 	//Save Timer Configuration
 	uint8_t TCON_save;
@@ -285,26 +262,26 @@ extern void TIMER01_0_enter_DefaultMode_from_RESET(void)
 
 	// $[TH0 - Timer 0 High Byte]
 	/***********************************************************************
-	 - Timer 0 High Byte = 0xE0
+	 - Timer 0 High Byte = 0x38
 	 ***********************************************************************/
-	TH0 = (0xE0 << TH0_TH0__SHIFT);
+	TH0 = (0x38 << TH0_TH0__SHIFT);
 	// [TH0 - Timer 0 High Byte]$
 
 	// $[TL0 - Timer 0 Low Byte]
+	/***********************************************************************
+	 - Timer 0 Low Byte = 0x9E
+	 ***********************************************************************/
+	TL0 = (0x9E << TL0_TL0__SHIFT);
 	// [TL0 - Timer 0 Low Byte]$
 
 	// $[TH1 - Timer 1 High Byte]
 	/***********************************************************************
-	 - Timer 1 High Byte = 0x38
+	 - Timer 1 High Byte = 0xCF
 	 ***********************************************************************/
-	TH1 = (0x38 << TH1_TH1__SHIFT);
+	TH1 = (0xCF << TH1_TH1__SHIFT);
 	// [TH1 - Timer 1 High Byte]$
 
 	// $[TL1 - Timer 1 Low Byte]
-	/***********************************************************************
-	 - Timer 1 Low Byte = 0x9E
-	 ***********************************************************************/
-	TL1 = (0x9E << TL1_TL1__SHIFT);
 	// [TL1 - Timer 1 Low Byte]$
 
 	// $[Timer Restoration]
@@ -315,34 +292,33 @@ extern void TIMER01_0_enter_DefaultMode_from_RESET(void)
 
 }
 
-extern void TIMER_SETUP_0_enter_DefaultMode_from_RESET(void)
-{
+extern void TIMER_SETUP_0_enter_DefaultMode_from_RESET(void) {
 	// $[CKCON0 - Clock Control 0]
 	/***********************************************************************
 	 - System clock divided by 48
-	 - Counter/Timer 0 uses the system clock
+	 - Counter/Timer 0 uses the clock defined by the prescale field, SCA
 	 - Timer 2 high byte uses the clock defined by T2XCLK in TMR2CN0
 	 - Timer 2 low byte uses the clock defined by T2XCLK in TMR2CN0
 	 - Timer 3 high byte uses the clock defined by T3XCLK in TMR3CN0
 	 - Timer 3 low byte uses the clock defined by T3XCLK in TMR3CN0
-	 - Timer 1 uses the clock defined by the prescale field, SCA
+	 - Timer 1 uses the system clock
 	 ***********************************************************************/
-	CKCON0 = CKCON0_SCA__SYSCLK_DIV_48 | CKCON0_T0M__SYSCLK
+	CKCON0 = CKCON0_SCA__SYSCLK_DIV_48 | CKCON0_T0M__PRESCALE
 			| CKCON0_T2MH__EXTERNAL_CLOCK | CKCON0_T2ML__EXTERNAL_CLOCK
 			| CKCON0_T3MH__EXTERNAL_CLOCK | CKCON0_T3ML__EXTERNAL_CLOCK
-			| CKCON0_T1M__PRESCALE;
+			| CKCON0_T1M__SYSCLK;
 	// [CKCON0 - Clock Control 0]$
 
 	// $[TMOD - Timer 0/1 Mode]
 	/***********************************************************************
-	 - Mode 2, 8-bit Counter/Timer with Auto-Reload
 	 - Mode 1, 16-bit Counter/Timer
+	 - Mode 2, 8-bit Counter/Timer with Auto-Reload
 	 - Timer Mode
 	 - Timer 0 enabled when TR0 = 1 irrespective of INT0 logic level
 	 - Timer Mode
 	 - Timer 1 enabled when TR1 = 1 irrespective of INT1 logic level
 	 ***********************************************************************/
-	TMOD = TMOD_T0M__MODE2 | TMOD_T1M__MODE1 | TMOD_CT0__TIMER
+	TMOD = TMOD_T0M__MODE1 | TMOD_T1M__MODE2 | TMOD_CT0__TIMER
 			| TMOD_GATE0__DISABLED | TMOD_CT1__TIMER | TMOD_GATE1__DISABLED;
 	// [TMOD - Timer 0/1 Mode]$
 
@@ -357,8 +333,7 @@ extern void TIMER_SETUP_0_enter_DefaultMode_from_RESET(void)
 
 }
 
-extern void INTERRUPT_0_enter_DefaultMode_from_RESET(void)
-{
+extern void INTERRUPT_0_enter_DefaultMode_from_RESET(void) {
 	// $[EIE1 - Extended Interrupt Enable 1]
 	/***********************************************************************
 	 - Enable interrupt requests generated by the ADINT flag
@@ -367,12 +342,12 @@ extern void INTERRUPT_0_enter_DefaultMode_from_RESET(void)
 	 - Disable CP1 interrupts
 	 - Disable all Port Match interrupts
 	 - Disable all PCA0 interrupts
-	 - Enable interrupt requests generated by SMB0
+	 - Disable all SMB0 interrupts
 	 - Enable interrupt requests generated by the TF3L or TF3H flags
 	 ***********************************************************************/
 	EIE1 = EIE1_EADC0__ENABLED | EIE1_EWADC0__DISABLED | EIE1_ECP0__DISABLED
 			| EIE1_ECP1__DISABLED | EIE1_EMAT__DISABLED | EIE1_EPCA0__DISABLED
-			| EIE1_ESMB0__ENABLED | EIE1_ET3__ENABLED;
+			| EIE1_ESMB0__DISABLED | EIE1_ET3__ENABLED;
 	// [EIE1 - Extended Interrupt Enable 1]$
 
 	// $[EIP1 - Extended Interrupt Priority 1]
@@ -397,14 +372,14 @@ extern void INTERRUPT_0_enter_DefaultMode_from_RESET(void)
 	 - Enable interrupt requests generated by the INT0 input
 	 - Disable external interrupt 1
 	 - Disable all SPI0 interrupts
-	 - Disable all Timer 0 interrupt
-	 - Enable interrupt requests generated by the TF1 flag
+	 - Enable interrupt requests generated by the TF0 flag
+	 - Disable all Timer 1 interrupt
 	 - Enable interrupt requests generated by the TF2L or TF2H flags
-	 - Disable UART0 interrupt
+	 - Enable UART0 interrupt
 	 ***********************************************************************/
 	IE = IE_EA__DISABLED | IE_EX0__ENABLED | IE_EX1__DISABLED
-			| IE_ESPI0__DISABLED | IE_ET0__DISABLED | IE_ET1__ENABLED
-			| IE_ET2__ENABLED | IE_ES0__DISABLED;
+			| IE_ESPI0__DISABLED | IE_ET0__ENABLED | IE_ET1__DISABLED
+			| IE_ET2__ENABLED | IE_ES0__ENABLED;
 	// [IE - Interrupt Enable]$
 
 	// $[IP - Interrupt Priority]
@@ -412,8 +387,7 @@ extern void INTERRUPT_0_enter_DefaultMode_from_RESET(void)
 
 }
 
-extern void SMBUS_0_enter_DefaultMode_from_RESET(void)
-{
+extern void SMBUS_0_enter_DefaultMode_from_RESET(void) {
 	// $[SMB0ADR - SMBus 0 Slave Address]
 	// [SMB0ADR - SMBus 0 Slave Address]$
 
@@ -442,8 +416,7 @@ extern void SMBUS_0_enter_DefaultMode_from_RESET(void)
 
 }
 
-extern void TIMER16_3_enter_DefaultMode_from_RESET(void)
-{
+extern void TIMER16_3_enter_DefaultMode_from_RESET(void) {
 	// $[Timer Initialization]
 	// Save Timer Configuration
 	uint8_t TMR3CN0_TR3_save;
@@ -489,8 +462,7 @@ extern void TIMER16_3_enter_DefaultMode_from_RESET(void)
 
 }
 
-extern void TIMER16_2_enter_DefaultMode_from_RESET(void)
-{
+extern void TIMER16_2_enter_DefaultMode_from_RESET(void) {
 	// $[Timer Initialization]
 	// Save Timer Configuration
 	uint8_t TMR2CN0_TR2_save;
@@ -532,8 +504,7 @@ extern void TIMER16_2_enter_DefaultMode_from_RESET(void)
 
 }
 
-extern void EXTINT_0_enter_DefaultMode_from_RESET(void)
-{
+extern void EXTINT_0_enter_DefaultMode_from_RESET(void) {
 	// $[IT01CF - INT0/INT1 Configuration]
 	/***********************************************************************
 	 - INT0 input is active low

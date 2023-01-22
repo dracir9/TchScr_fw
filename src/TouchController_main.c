@@ -10,10 +10,10 @@
 // Includes
 //-----------------------------------------------------------------------------
 #include <SI_EFM8BB1_Register_Enums.h>                  // SFR declarations
-#include <string.h>
+#include <MATH.H>
 #include "InitDevice.h"
 #include "TouchScreen.h"
-#include "SMBus.h"
+#include "UART.h"
 // $[Generated Includes]
 // [Generated Includes]$
 
@@ -140,13 +140,13 @@ int main (void)
 
 				if (sendEvent)
 				{
-					while(SMB_BUSY);
-					SMB_DATA_OUT_MASTER[0] = activeBtn;
-					SMB_DATA_OUT_MASTER[1] = ((uint8_t*)&point.x)[1];
-					SMB_DATA_OUT_MASTER[2] = ((uint8_t*)&point.x)[0];
-					SMB_DATA_OUT_MASTER[3] = ((uint8_t*)&point.y)[1];
-					SMB_DATA_OUT_MASTER[4] = ((uint8_t*)&point.y)[0];
-					SMB_Write(ESP_ADDR, 5);
+					while(UART_BUSY);
+					UART_DATA_OUT[0] = activeBtn;
+					UART_DATA_OUT[1] = ((uint8_t*)&point.x)[1];
+					UART_DATA_OUT[2] = ((uint8_t*)&point.x)[0];
+					UART_DATA_OUT[3] = ((uint8_t*)&point.y)[1];
+					UART_DATA_OUT[4] = ((uint8_t*)&point.y)[0];
+					UART_Write(0, 5);
 					sendEvent = false;
 				}
 
@@ -156,46 +156,46 @@ int main (void)
 
 		if (DATA_READY)
 		{
-			switch (TCH_CMD)
+			switch (CMD_ID)
 			{
 			case TCH_CMD_CAL:
-				((uint8_t*)&dx)[1] = SMB_DATA_IN_SLAVE[0];
-				((uint8_t*)&dx)[0] = SMB_DATA_IN_SLAVE[1];
-				((uint8_t*)&rx_min)[1] = SMB_DATA_IN_SLAVE[2];
-				((uint8_t*)&rx_min)[0] = SMB_DATA_IN_SLAVE[3];
-				((uint8_t*)&rx_max)[1] = SMB_DATA_IN_SLAVE[4];
-				((uint8_t*)&rx_max)[0] = SMB_DATA_IN_SLAVE[5];
-				((uint8_t*)&dy)[1] = SMB_DATA_IN_SLAVE[6];
-				((uint8_t*)&dy)[0] = SMB_DATA_IN_SLAVE[7];
-				((uint8_t*)&ry_min)[1] = SMB_DATA_IN_SLAVE[8];
-				((uint8_t*)&ry_min)[0] = SMB_DATA_IN_SLAVE[9];
-				((uint8_t*)&ry_max)[1] = SMB_DATA_IN_SLAVE[10];
-				((uint8_t*)&ry_max)[0] = SMB_DATA_IN_SLAVE[11];
+				((uint8_t*)&dx)[1] = UART_DATA_IN[0];
+				((uint8_t*)&dx)[0] = UART_DATA_IN[1];
+				((uint8_t*)&rx_min)[1] = UART_DATA_IN[2];
+				((uint8_t*)&rx_min)[0] = UART_DATA_IN[3];
+				((uint8_t*)&rx_max)[1] = UART_DATA_IN[4];
+				((uint8_t*)&rx_max)[0] = UART_DATA_IN[5];
+				((uint8_t*)&dy)[1] = UART_DATA_IN[6];
+				((uint8_t*)&dy)[0] = UART_DATA_IN[7];
+				((uint8_t*)&ry_min)[1] = UART_DATA_IN[8];
+				((uint8_t*)&ry_min)[0] = UART_DATA_IN[9];
+				((uint8_t*)&ry_max)[1] = UART_DATA_IN[10];
+				((uint8_t*)&ry_max)[0] = UART_DATA_IN[11];
 				rx_max = rx_max - rx_min;
 				ry_max = ry_max - ry_min;
 				break;
 
 			case TCH_CMD_THR:
-				((uint8_t*)&p_min)[1] = SMB_DATA_IN_SLAVE[0];
-				((uint8_t*)&p_min)[0] = SMB_DATA_IN_SLAVE[1];
-				((uint8_t*)&p_max)[1] = SMB_DATA_IN_SLAVE[2];
-				((uint8_t*)&p_max)[0] = SMB_DATA_IN_SLAVE[3];
+				((uint8_t*)&p_min)[1] = UART_DATA_IN[0];
+				((uint8_t*)&p_min)[0] = UART_DATA_IN[1];
+				((uint8_t*)&p_max)[1] = UART_DATA_IN[2];
+				((uint8_t*)&p_max)[0] = UART_DATA_IN[3];
 				break;
 
 			case TCH_CMD_BTN:
-				editButton(SMB_DATA_IN_SLAVE[0], SMB_DATA_IN_SLAVE[1], SMB_DATA_IN_SLAVE[2],
-				SMB_DATA_IN_SLAVE[4] | SMB_DATA_IN_SLAVE[5] << 8,
-				SMB_DATA_IN_SLAVE[6] | SMB_DATA_IN_SLAVE[7] << 8,
-				SMB_DATA_IN_SLAVE[8] | SMB_DATA_IN_SLAVE[9] << 8,
-				SMB_DATA_IN_SLAVE[10] | SMB_DATA_IN_SLAVE[11] << 8);
+				editButton(UART_DATA_IN[0], UART_DATA_IN[1], UART_DATA_IN[2],
+						UART_DATA_IN[4] | UART_DATA_IN[5] << 8,
+						UART_DATA_IN[6] | UART_DATA_IN[7] << 8,
+						UART_DATA_IN[8] | UART_DATA_IN[9] << 8,
+						UART_DATA_IN[10] | UART_DATA_IN[11] << 8);
 				break;
 
 			case TCH_CMD_IRQ:
-				touchIRQ = SMB_DATA_IN_SLAVE[0] & 0x01;
-				buttonIRQ = SMB_DATA_IN_SLAVE[0] & 0x02;
-				flipXY = SMB_DATA_IN_SLAVE[0] & 0x04;
-				TMR2RLL = SMB_DATA_IN_SLAVE[1];
-				TMR2RLH = SMB_DATA_IN_SLAVE[2];
+				touchIRQ = UART_DATA_IN[0] & 0x01;
+				buttonIRQ = UART_DATA_IN[0] & 0x02;
+				flipXY = UART_DATA_IN[0] & 0x04;
+				TMR2RLL = UART_DATA_IN[1];
+				TMR2RLH = UART_DATA_IN[2];
 				break;
 			}
 			DATA_READY = false;
