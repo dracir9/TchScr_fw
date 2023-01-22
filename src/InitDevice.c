@@ -31,6 +31,7 @@ extern void enter_DefaultMode_from_RESET(void) {
 	TIMER16_2_enter_DefaultMode_from_RESET();
 	TIMER16_3_enter_DefaultMode_from_RESET();
 	TIMER_SETUP_0_enter_DefaultMode_from_RESET();
+	UART_0_enter_DefaultMode_from_RESET();
 	EXTINT_0_enter_DefaultMode_from_RESET();
 	INTERRUPT_0_enter_DefaultMode_from_RESET();
 	// [Config Calls]$
@@ -59,14 +60,14 @@ extern void PORTS_0_enter_DefaultMode_from_RESET(void) {
 	 - P0.1 output is push-pull
 	 - P0.2 output is open-drain
 	 - P0.3 output is push-pull
-	 - P0.4 output is open-drain
+	 - P0.4 output is push-pull
 	 - P0.5 output is open-drain
 	 - P0.6 output is open-drain
 	 - P0.7 output is open-drain
 	 ***********************************************************************/
 	P0MDOUT = P0MDOUT_B0__OPEN_DRAIN | P0MDOUT_B1__PUSH_PULL
 			| P0MDOUT_B2__OPEN_DRAIN | P0MDOUT_B3__PUSH_PULL
-			| P0MDOUT_B4__OPEN_DRAIN | P0MDOUT_B5__OPEN_DRAIN
+			| P0MDOUT_B4__PUSH_PULL | P0MDOUT_B5__OPEN_DRAIN
 			| P0MDOUT_B6__OPEN_DRAIN | P0MDOUT_B7__OPEN_DRAIN;
 	// [P0MDOUT - Port 0 Output Mode]$
 
@@ -79,14 +80,14 @@ extern void PORTS_0_enter_DefaultMode_from_RESET(void) {
 	 - P0.1 pin is skipped by the crossbar
 	 - P0.2 pin is skipped by the crossbar
 	 - P0.3 pin is skipped by the crossbar
-	 - P0.4 pin is skipped by the crossbar
-	 - P0.5 pin is skipped by the crossbar
+	 - P0.4 pin is not skipped by the crossbar
+	 - P0.5 pin is not skipped by the crossbar
 	 - P0.6 pin is skipped by the crossbar
 	 - P0.7 pin is skipped by the crossbar
 	 ***********************************************************************/
 	P0SKIP = P0SKIP_B0__SKIPPED | P0SKIP_B1__SKIPPED | P0SKIP_B2__SKIPPED
-			| P0SKIP_B3__SKIPPED | P0SKIP_B4__SKIPPED | P0SKIP_B5__SKIPPED
-			| P0SKIP_B6__SKIPPED | P0SKIP_B7__SKIPPED;
+			| P0SKIP_B3__SKIPPED | P0SKIP_B4__NOT_SKIPPED
+			| P0SKIP_B5__NOT_SKIPPED | P0SKIP_B6__SKIPPED | P0SKIP_B7__SKIPPED;
 	// [P0SKIP - Port 0 Skip]$
 
 	// $[P0MASK - Port 0 Mask]
@@ -110,6 +111,19 @@ extern void PBCFG_0_enter_DefaultMode_from_RESET(void) {
 	// [PRTDRV - Port Drive Strength]$
 
 	// $[XBR0 - Port I/O Crossbar 0]
+	/***********************************************************************
+	 - UART TX, RX routed to Port pins P0.4 and P0.5
+	 - SPI I/O unavailable at Port pins
+	 - SMBus 0 I/O unavailable at Port pins
+	 - CP0 unavailable at Port pin
+	 - Asynchronous CP0 unavailable at Port pin
+	 - CP1 unavailable at Port pin
+	 - Asynchronous CP1 unavailable at Port pin
+	 - SYSCLK unavailable at Port pin
+	 ***********************************************************************/
+	XBR0 = XBR0_URT0E__ENABLED | XBR0_SPI0E__DISABLED | XBR0_SMB0E__DISABLED
+			| XBR0_CP0E__DISABLED | XBR0_CP0AE__DISABLED | XBR0_CP1E__DISABLED
+			| XBR0_CP1AE__DISABLED | XBR0_SYSCKE__DISABLED;
 	// [XBR0 - Port I/O Crossbar 0]$
 
 	// $[XBR1 - Port I/O Crossbar 1]
@@ -435,24 +449,12 @@ extern void TIMER16_3_enter_DefaultMode_from_RESET(void) {
 	// [TMR3L - Timer 3 Low Byte]$
 
 	// $[TMR3RLH - Timer 3 Reload High Byte]
-	/***********************************************************************
-	 - Timer 3 Reload High Byte = 0x38
-	 ***********************************************************************/
-	TMR3RLH = (0x38 << TMR3RLH_TMR3RLH__SHIFT);
 	// [TMR3RLH - Timer 3 Reload High Byte]$
 
 	// $[TMR3RLL - Timer 3 Reload Low Byte]
-	/***********************************************************************
-	 - Timer 3 Reload Low Byte = 0x9E
-	 ***********************************************************************/
-	TMR3RLL = (0x9E << TMR3RLL_TMR3RLL__SHIFT);
 	// [TMR3RLL - Timer 3 Reload Low Byte]$
 
 	// $[TMR3CN0]
-	/***********************************************************************
-	 - Start Timer 3 running
-	 ***********************************************************************/
-	TMR3CN0 |= TMR3CN0_TR3__RUN;
 	// [TMR3CN0]$
 
 	// $[Timer Restoration]
@@ -515,6 +517,16 @@ extern void EXTINT_0_enter_DefaultMode_from_RESET(void) {
 	IT01CF = IT01CF_IN0PL__ACTIVE_LOW | IT01CF_IN0SL__P0_2
 			| IT01CF_IN1PL__ACTIVE_LOW | IT01CF_IN1SL__P0_0;
 	// [IT01CF - INT0/INT1 Configuration]$
+
+}
+
+extern void UART_0_enter_DefaultMode_from_RESET(void) {
+	// $[SCON0 - UART0 Serial Port Control]
+	/***********************************************************************
+	 - UART0 reception enabled
+	 ***********************************************************************/
+	SCON0 |= SCON0_REN__RECEIVE_ENABLED;
+	// [SCON0 - UART0 Serial Port Control]$
 
 }
 

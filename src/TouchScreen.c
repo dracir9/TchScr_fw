@@ -50,11 +50,11 @@ int8_t checkButtons(int16_t x, int16_t y)
 						activeBtn = lastHoldBtn | EVNT_HOLD_END;	// Hold end
 					lastHoldBtn = i;
 					pressCnt = buttonArr[i].holdTime; // Reset count
-					TCON_TR1 = 1; // Enable timer
+					TCON_TR0 = 1; // Enable timer
 				}
 				else if (!pressCnt)
 				{
-					TCON_TR1 = 0; // Stop timer
+					TCON_TR0 = 0; // Stop timer
 					pressCnt = 255;
 					activeBtn = i | EVNT_HOLD_STRT;				// Hold start
 					return activeBtn;
@@ -246,24 +246,24 @@ SI_INTERRUPT(ADC0EOC_ISR, ADC0EOC_IRQn)
 }
 
 //-----------------------------------------------------------------------------
-// TIMER1_ISR
+// TIMER0_ISR
 //-----------------------------------------------------------------------------
 //
 // TIMER1 ISR Content goes here. Remember to clear flag bits:
 // TCON::TF1 (Timer 1 Overflow Flag)
 //
 //-----------------------------------------------------------------------------
-SI_INTERRUPT (TIMER1_ISR, TIMER1_IRQn)
+SI_INTERRUPT (TIMER0_ISR, TIMER0_IRQn)
 {
 	// Decrement counter
 	pressCnt--;
 	if (!pressCnt)
-		TCON_TR1 = 0; // Stop timer
+		TCON_TR0 = 0; // Stop timer
 
 	// Start at 14494
-	TH1 = 0x38;
-	TL1 = 0x9E;
+	TH0 = 0x38;
+	TL0 = 0x9E;
 
 	// Clear flag
-	TCON_TF1 = 0;
+	TCON_TF0 = 0;
 }

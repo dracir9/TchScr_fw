@@ -13,6 +13,7 @@
     <property object="CLOCK_0" propertyId="ABPeripheral.included" value="true"/>
     <property object="CLOCK_0" propertyId="clock.clockselect.clocksourcedivider" value="SYSCLK / 1"/>
     <property object="CLOCK_0" propertyId="clock.clockselect.sysclk" value="24.500 MHz"/>
+    <property object="CROSSBAR0" propertyId="xbar0.uart0.data" value="Enabled"/>
     <property object="DefaultMode" propertyId="mode.diagramLocation" value="100, 100"/>
     <property object="EXTINT_0" propertyId="ABPeripheral.included" value="true"/>
     <property object="EXTINT_0" propertyId="extint.int0int1configuration.int0portpinselection" value="P0.2"/>
@@ -35,8 +36,8 @@
     <property object="P0.3" propertyId="ports.settings.latch" value="Low"/>
     <property object="P0.3" propertyId="ports.settings.outputmode" value="Push-pull"/>
     <property object="P0.3" propertyId="ports.settings.skip" value="Skipped"/>
-    <property object="P0.4" propertyId="ports.settings.skip" value="Skipped"/>
-    <property object="P0.5" propertyId="ports.settings.skip" value="Skipped"/>
+    <property object="P0.4" propertyId="ports.settings.iomode" value="Digital Push-Pull Output"/>
+    <property object="P0.4" propertyId="ports.settings.outputmode" value="Push-pull"/>
     <property object="P0.6" propertyId="ports.settings.skip" value="Skipped"/>
     <property object="P0.7" propertyId="ports.settings.skip" value="Skipped"/>
     <property object="P1.0" propertyId="ports.settings.skip" value="Skipped"/>
@@ -63,12 +64,7 @@
     <property object="TIMER16_2" propertyId="timer16.reloadhighbyte.reloadhighbyte" value="225"/>
     <property object="TIMER16_2" propertyId="timer16.reloadlowbyte.reloadlowbyte" value="83"/>
     <property object="TIMER16_3" propertyId="ABPeripheral.included" value="true"/>
-    <property object="TIMER16_3" propertyId="timer16.control.runcontrol" value="Start"/>
-    <property object="TIMER16_3" propertyId="timer16.control.timerrunningstate" value="Timer is Running"/>
-    <property object="TIMER16_3" propertyId="timer16.initandreloadvalue.targetoverflowfrequency" value="40"/>
-    <property object="TIMER16_3" propertyId="timer16.initandreloadvalue.timerreloadvalue" value="14494"/>
-    <property object="TIMER16_3" propertyId="timer16.reloadhighbyte.reloadhighbyte" value="56"/>
-    <property object="TIMER16_3" propertyId="timer16.reloadlowbyte.reloadlowbyte" value="158"/>
+    <property object="TIMER16_3" propertyId="timer16.initandreloadvalue.targetoverflowfrequency" value="30"/>
     <property object="TIMER_SETUP_0" propertyId="ABPeripheral.included" value="true"/>
     <property object="TIMER_SETUP_0" propertyId="timer_setup.clockcontrol0.timer01prescale" value="SYSCLK / 48"/>
     <property object="TIMER_SETUP_0" propertyId="timer_setup.externalinterruptsettings.int0triggersensitivity" value="Edge-triggered"/>
@@ -82,6 +78,7 @@
     <property object="TIMER_SETUP_0" propertyId="timer_setup.timer1.timerrunningstate" value="Timer is Running"/>
     <property object="TIMER_SETUP_0" propertyId="timer_setup.timer1.timerswitch1:runcontrol" value="Start"/>
     <property object="UART_0" propertyId="ABPeripheral.included" value="true"/>
+    <property object="UART_0" propertyId="uart.serialportcontrol.enablereceive" value="Enabled"/>
     <property object="VREF_0" propertyId="ABPeripheral.included" value="true"/>
     <property object="WDT_0" propertyId="ABPeripheral.included" value="true"/>
     <property object="WDT_0" propertyId="wdt.watchdogcontrol.wdtenable" value="Disable"/>

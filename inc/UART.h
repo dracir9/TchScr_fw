@@ -16,10 +16,13 @@
 #define UART_IN_SIZE 12
 
 // Write commands
-#define TCH_CMD_CAL				0x01	// Receive calibration values
-#define TCH_CMD_THR				0x02	// Pressure threshold
-#define TCH_CMD_BTN				0x03	// Modify button
-#define TCH_CMD_IRQ				0x04	// Modify touch notifications
+#define TCH_CMD_CAL		0x01	// Receive calibration values
+#define TCH_CMD_THR		0x02	// Pressure threshold
+#define TCH_CMD_BTN		0x03	// Modify button
+#define TCH_CMD_IRQ		0x04	// Modify touch notifications
+
+// Read commands
+#define TCH_CMD_LEV		0x80	// Get Last Event
 
 extern uint8_t UART_DATA_OUT[UART_OUT_SIZE];
 extern uint8_t UART_DATA_IN[UART_IN_SIZE];

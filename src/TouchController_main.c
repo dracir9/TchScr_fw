@@ -128,13 +128,15 @@ int main (void)
 				checkButtons(point.x, point.y);
 
 				// Send notifications
+				// Touch interrupts enabled and cool down ready
 				if (touchIRQ && IS_READY)
 				{
 					sendEvent = true;
 					IS_READY = false;
-					TMR2CN0 |= TMR2CN0_TR2__RUN;		// Enable timeout timer
+					TMR2CN0 |= TMR2CN0_TR2__RUN;		// Enable cool down timer
 				}
 
+				// Button interrupts
 				if (buttonIRQ && activeBtn != EVNT_IDLE)
 					sendEvent = true;
 
@@ -197,6 +199,16 @@ int main (void)
 				TMR2RLL = UART_DATA_IN[1];
 				TMR2RLH = UART_DATA_IN[2];
 				break;
+
+			// Commands that return a response
+			case TCH_CMD_LEV:
+				while(UART_BUSY);
+				UART_DATA_OUT[0] = activeBtn;
+				UART_DATA_OUT[1] = ((uint8_t*)&point.x)[1];
+				UART_DATA_OUT[2] = ((uint8_t*)&point.x)[0];
+				UART_DATA_OUT[3] = ((uint8_t*)&point.y)[1];
+				UART_DATA_OUT[4] = ((uint8_t*)&point.y)[0];
+				UART_Write(0x01, 5);
 			}
 			DATA_READY = false;
 		}

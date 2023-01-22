@@ -16,7 +16,7 @@ uint8_t UART_DATA_OUT[UART_OUT_SIZE] = {0};
 // Bytes to write
 uint8_t nSend = 0;
 
-// Global buffer for UART incoming data. All receive data is written here
+// Global buffer for UART incoming data. All received data is written here
 uint8_t UART_DATA_IN[UART_IN_SIZE] = {0};
 // Bytes expected to receive
 uint8_t nReceive = 0;
@@ -65,10 +65,16 @@ SI_INTERRUPT(UART0_ISR, UART0_IRQn)
 
 		if (IS_RECEIVING)
 		{
+			// Reset timer
+			TMR3 = 0;
+
 			UART_DATA_IN[BytesReceived++] = SBUF0;
 			if (BytesReceived >= nReceive) {
-				DATA_READY = true;
+				// Disable timeout timer
+				TMR3CN0 &= ~TMR3CN0_TR3__RUN;
+
 				IS_RECEIVING = false;
+				DATA_READY = true;
 			}
 		}
 		else
@@ -93,12 +99,22 @@ SI_INTERRUPT(UART0_ISR, UART0_IRQn)
 				nReceive = 3;
 				break;
 
-			default:			// Invalid command
+			default:
+				// Read command
+				if (CMD_ID & 0x80)
+				{
+					DATA_READY = true;
+					return;
+				}
+
+				// Invalid command
 				CMD_ID = 0;
 				return;
 			}
 			IS_RECEIVING = true;
 			BytesReceived = 0;
+
+			TMR3CN0 |= TMR3CN0_TR3__RUN; // Enable timeout timer
 		}
 	}
 
@@ -131,6 +147,7 @@ SI_INTERRUPT(UART0_ISR, UART0_IRQn)
 //-----------------------------------------------------------------------------
 SI_INTERRUPT(TIMER3_ISR, TIMER3_IRQn)
 {
-	TMR3CN0 &= ~0x80;					// Clear Timer3 interrupt-pending flag
+	TMR3CN0 &= ~TMR3CN0_TF3H__BMASK;	// Clear Timer3 interrupt-pending flag
+	TMR3CN0 &= ~TMR3CN0_TR3__RUN;		// Disable timeout timer
 	IS_RECEIVING = false;
 }
