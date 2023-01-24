@@ -28,12 +28,11 @@ extern uint8_t UART_DATA_OUT[UART_OUT_SIZE];
 extern uint8_t UART_DATA_IN[UART_IN_SIZE];
 
 extern volatile bool DATA_READY;
-extern volatile bool UART_BUSY;
 
 extern uint8_t CMD_ID;
 
 extern Vec2 LAST_POINT;
 
-void UART_Write(uint8_t command, uint8_t size);
+void UART_Write(uint8_t *buff, uint8_t size);
 
 #endif /* INC_UART_H_ */

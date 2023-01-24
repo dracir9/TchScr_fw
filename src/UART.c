@@ -6,6 +6,7 @@
  */
 
 #include "UART.h"
+#include "STRING.H"
 
 //-----------------------------------------------------------------------------
 // Global Variables
@@ -30,14 +31,21 @@ volatile bool DATA_READY = false;		// Data received
 // Software flag to indicate the UART bus is transmitting
 volatile bool UART_BUSY = false;
 
+static uint8_t BytesSent;
+static uint8_t BytesReceived;
+
 Vec2 LAST_POINT;
 
-void UART_Write(uint8_t command, uint8_t size)
+void UART_Write(uint8_t *buff, uint8_t size)
 {
 	while(UART_BUSY);					// Wait for UART to be free.
 	UART_BUSY = true;					// Claim UART (set to busy)
+
+	memcpy(UART_DATA_OUT, buff, size);
+
 	nSend = size;
-	SBUF0 = command;					// Start transfer
+	// Start transfer
+	SBUF0 = size;
 }
 
 
@@ -52,10 +60,6 @@ void UART_Write(uint8_t command, uint8_t size)
 //-----------------------------------------------------------------------------
 SI_INTERRUPT(UART0_ISR, UART0_IRQn)
 {
-	static uint8_t BytesSent;
-	static uint8_t BytesReceived;
-
-
 	if (SCON0_RI == 1) 							// New Byte received
 	{
 		SCON0_RI = 0;							// Clear interrupt flag
@@ -99,14 +103,12 @@ SI_INTERRUPT(UART0_ISR, UART0_IRQn)
 				nReceive = 3;
 				break;
 
-			default:
-				// Read command
-				if (CMD_ID & 0x80)
-				{
-					DATA_READY = true;
-					return;
-				}
+			// Read commands
+			case TCH_CMD_LEV:
+				DATA_READY = true;
+				return;
 
+			default:
 				// Invalid command
 				CMD_ID = 0;
 				return;
@@ -114,6 +116,8 @@ SI_INTERRUPT(UART0_ISR, UART0_IRQn)
 			IS_RECEIVING = true;
 			BytesReceived = 0;
 
+			// Reset timer
+			TMR3 = 0;
 			TMR3CN0 |= TMR3CN0_TR3__RUN; // Enable timeout timer
 		}
 	}
@@ -122,7 +126,7 @@ SI_INTERRUPT(UART0_ISR, UART0_IRQn)
 	{
 		SCON0_TI = 0;							// Clear interrupt flag
 
-		if (BytesSent <= nSend)						// While data remaining
+		if (BytesSent < nSend)						// While data remaining
 		{
 			SBUF0 = UART_DATA_OUT[BytesSent++];		// Transmit byte
 		}

@@ -46,11 +46,11 @@
 
 // Events
 #define EVNT_IDLE		0
-#define EVNT_PRESS		0x20
-#define EVNT_HOLD_STRT	0x40
-#define EVNT_HOLD_TICK	0x60
-#define EVNT_HOLD_END	0x80
-#define EVNT_RELEASE	0xA0
+#define EVNT_PRESS		1 << 5
+#define EVNT_HOLD_STRT	2 << 5
+#define EVNT_HOLD_TICK	3 << 5
+#define EVNT_HOLD_END	4 << 5
+#define EVNT_RELEASE	5 << 5
 
 #define MAX_BUTTONS	25
 

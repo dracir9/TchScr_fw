@@ -290,9 +290,9 @@ extern void TIMER01_0_enter_DefaultMode_from_RESET(void) {
 
 	// $[TH1 - Timer 1 High Byte]
 	/***********************************************************************
-	 - Timer 1 High Byte = 0xCF
+	 - Timer 1 High Byte = 0x0B
 	 ***********************************************************************/
-	TH1 = (0xCF << TH1_TH1__SHIFT);
+	TH1 = (0x0B << TH1_TH1__SHIFT);
 	// [TH1 - Timer 1 High Byte]$
 
 	// $[TL1 - Timer 1 Low Byte]
@@ -365,19 +365,6 @@ extern void INTERRUPT_0_enter_DefaultMode_from_RESET(void) {
 	// [EIE1 - Extended Interrupt Enable 1]$
 
 	// $[EIP1 - Extended Interrupt Priority 1]
-	/***********************************************************************
-	 - ADC0 Conversion Complete interrupt set to low priority level
-	 - ADC0 Window interrupt set to low priority level
-	 - CP0 interrupt set to low priority level
-	 - CP1 interrupt set to low priority level
-	 - Port Match interrupt set to low priority level
-	 - PCA0 interrupt set to low priority level
-	 - SMB0 interrupt set to high priority level
-	 - Timer 3 interrupts set to low priority level
-	 ***********************************************************************/
-	EIP1 = EIP1_PADC0__LOW | EIP1_PWADC0__LOW | EIP1_PCP0__LOW | EIP1_PCP1__LOW
-			| EIP1_PMAT__LOW | EIP1_PPCA0__LOW | EIP1_PSMB0__HIGH
-			| EIP1_PT3__LOW;
 	// [EIP1 - Extended Interrupt Priority 1]$
 
 	// $[IE - Interrupt Enable]
@@ -397,6 +384,17 @@ extern void INTERRUPT_0_enter_DefaultMode_from_RESET(void) {
 	// [IE - Interrupt Enable]$
 
 	// $[IP - Interrupt Priority]
+	/***********************************************************************
+	 - External Interrupt 0 set to low priority level
+	 - External Interrupt 1 set to low priority level
+	 - SPI0 interrupt set to low priority level
+	 - Timer 0 interrupt set to low priority level
+	 - Timer 1 interrupt set to low priority level
+	 - Timer 2 interrupt set to low priority level
+	 - UART0 interrupt set to high priority level
+	 ***********************************************************************/
+	IP = IP_PX0__LOW | IP_PX1__LOW | IP_PSPI0__LOW | IP_PT0__LOW | IP_PT1__LOW
+			| IP_PT2__LOW | IP_PS0__HIGH;
 	// [IP - Interrupt Priority]$
 
 }
@@ -524,8 +522,10 @@ extern void UART_0_enter_DefaultMode_from_RESET(void) {
 	// $[SCON0 - UART0 Serial Port Control]
 	/***********************************************************************
 	 - UART0 reception enabled
+	 - RI is set and an interrupt is generated only when the stop bit is
+	 logic 1
 	 ***********************************************************************/
-	SCON0 |= SCON0_REN__RECEIVE_ENABLED;
+	SCON0 |= SCON0_REN__RECEIVE_ENABLED | SCON0_MCE__MULTI_ENABLED;
 	// [SCON0 - UART0 Serial Port Control]$
 
 }

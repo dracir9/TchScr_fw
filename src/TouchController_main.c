@@ -34,6 +34,8 @@ bool flipXY = false;
 bool sendEvent = false;
 volatile bool IS_READY = true;
 
+uint8_t outBuff[5];
+
 //-----------------------------------------------------------------------------
 // SiLabs_Startup() Routine
 // ----------------------------------------------------------------------------
@@ -142,13 +144,12 @@ int main (void)
 
 				if (sendEvent)
 				{
-					while(UART_BUSY);
-					UART_DATA_OUT[0] = activeBtn;
-					UART_DATA_OUT[1] = ((uint8_t*)&point.x)[1];
-					UART_DATA_OUT[2] = ((uint8_t*)&point.x)[0];
-					UART_DATA_OUT[3] = ((uint8_t*)&point.y)[1];
-					UART_DATA_OUT[4] = ((uint8_t*)&point.y)[0];
-					UART_Write(0, 5);
+					outBuff[0] = activeBtn;
+					outBuff[1] = ((uint8_t*)&point.x)[1];
+					outBuff[2] = ((uint8_t*)&point.x)[0];
+					outBuff[3] = ((uint8_t*)&point.y)[1];
+					outBuff[4] = ((uint8_t*)&point.y)[0];
+					UART_Write(outBuff, 5);
 					sendEvent = false;
 				}
 
@@ -202,13 +203,12 @@ int main (void)
 
 			// Commands that return a response
 			case TCH_CMD_LEV:
-				while(UART_BUSY);
-				UART_DATA_OUT[0] = activeBtn;
-				UART_DATA_OUT[1] = ((uint8_t*)&point.x)[1];
-				UART_DATA_OUT[2] = ((uint8_t*)&point.x)[0];
-				UART_DATA_OUT[3] = ((uint8_t*)&point.y)[1];
-				UART_DATA_OUT[4] = ((uint8_t*)&point.y)[0];
-				UART_Write(0x01, 5);
+				outBuff[0] = activeBtn;
+				outBuff[1] = ((uint8_t*)&point.x)[1];
+				outBuff[2] = ((uint8_t*)&point.x)[0];
+				outBuff[3] = ((uint8_t*)&point.y)[1];
+				outBuff[4] = ((uint8_t*)&point.y)[0];
+				UART_Write(outBuff, 5);
 			}
 			DATA_READY = false;
 		}
