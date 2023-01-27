@@ -44,17 +44,25 @@ int8_t checkButtons(int16_t x, int16_t y)
 			if ((state & 0x02) && touchState == TCH_HOLD) // Hold Events
 			{
 				anyHold = true;
+				// If not pressing the same button
 				if (lastHoldBtn != i)
 				{
+					// If button Hold Start was triggered
 					if (pressCnt == 255)
 						activeBtn = lastHoldBtn | EVNT_HOLD_END;	// Hold end
+
+					// User is pressing this button now
 					lastHoldBtn = i;
 					pressCnt = buttonArr[i].holdTime; // Reset count
 					TCON_TR0 = 1; // Enable timer
 				}
+				// If timeout exhausted
 				else if (!pressCnt)
 				{
-					TCON_TR0 = 0; // Stop timer
+					// Ensure timer is stopped
+					TCON_TR0 = 0;
+
+					// Flag to start hold tick
 					pressCnt = 255;
 					activeBtn = i | EVNT_HOLD_STRT;				// Hold start
 					return activeBtn;

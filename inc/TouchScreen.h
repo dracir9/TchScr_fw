@@ -69,8 +69,8 @@ typedef struct
 
 typedef struct
 {
-	uint8_t holdTime;
-	uint8_t state; // Bit field
+	uint8_t holdTime; // Any value from 0 to 127
+	uint8_t state; // Bit field, 4 MSB reserved
 	int16_t xmin;
 	int16_t xmax;
 	int16_t ymin;
