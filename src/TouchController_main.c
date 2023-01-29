@@ -37,11 +37,13 @@ static volatile bool IS_READY = true;
 static uint8_t outBuff[5];
 
 static Vec2 point;
-static bool valid = false;
 static bool pressed = false;
 static bool lastPressed = false;
 static uint16_t lastP = 0;
 static Vec2 lastPoint;
+
+void processData();
+void processTouch();
 
 //-----------------------------------------------------------------------------
 // SiLabs_Startup() Routine
@@ -76,141 +78,152 @@ int main (void)
 			wakeFromIdle = false;
 			startTchRead();
 		}
-		if (readComplete)
+
+		// If data ready halt touch processing
+		if (DATA_READY)
+		{
+			processData();
+			DATA_READY--;
+		}
+		else if (readComplete)
 		{
 			readComplete = false;
-			valid = true;
-			if (touchPoint.z > p_min && touchPoint.z < p_max)
+			processTouch();
+		}
+	}
+}
+
+void processData()
+{
+	// Next byte should be the command
+	switch (UART_GetByte())
+	{
+	case TCH_CMD_CAL:
+		dx = UART_GetUI16();
+		rx_min = UART_GetUI16();
+		rx_max = UART_GetUI16();
+		dy = UART_GetUI16();
+		ry_min = UART_GetUI16();
+		ry_max = UART_GetUI16();
+		rx_max = rx_max - rx_min;
+		ry_max = ry_max - ry_min;
+		break;
+
+	case TCH_CMD_THR:
+		p_min = UART_GetUI16();
+		p_max = UART_GetUI16();
+		break;
+
+	case TCH_CMD_BTN:
+		outBuff[0] = UART_GetByte();
+		outBuff[1] = UART_GetByte();
+		outBuff[2] = UART_GetByte();
+		outBuff[3] = UART_GetByte();
+		editButton(outBuff[0], outBuff[1], outBuff[2],
+				UART_GetUI16(),
+				UART_GetUI16(),
+				UART_GetUI16(),
+				UART_GetUI16());
+		break;
+
+	case TCH_CMD_IRQ:
+		outBuff[0] = UART_GetByte();
+		touchIRQ = outBuff[0] & 0x01;
+		buttonIRQ = outBuff[0] & 0x02;
+		flipXY = outBuff[0] & 0x04;
+		TMR2RLL = UART_GetByte();
+		TMR2RLH = UART_GetByte();
+		break;
+
+	// Commands that return a response
+	case TCH_CMD_LEV:
+		outBuff[0] = activeBtn;
+		outBuff[1] = ((uint8_t*)&point.x)[1];
+		outBuff[2] = ((uint8_t*)&point.x)[0];
+		outBuff[3] = ((uint8_t*)&point.y)[1];
+		outBuff[4] = ((uint8_t*)&point.y)[0];
+		UART_Write(outBuff, 5);
+	}
+}
+
+void processTouch()
+{
+	bool valid = true;
+	if (touchPoint.z > p_min && touchPoint.z < p_max)
+	{
+		if (touchPoint.z < lastP)	// Pressure is decreasing
+		{
+			// Interpolate
+			//point.x = x_min + (point.x - rx_min) * (x_max - x_min)/(rx_max-rx_min); // -> 41 Cycles
+			//point.x = (point.x - rx_min) * x_max/(rx_max-rx_min); // ->28 Cycles
+			//point.x = (int32_t)(point.x - rx_min) * x_max/(rx_max-rx_min); // ->130 Cycles
+			//point.x = point.x * a + rx_min; // -> 200
+			if (flipXY)
 			{
-				if (touchPoint.z < lastP)	// Pressure is decreasing
-				{
-					// Interpolate
-					//point.x = x_min + (point.x - rx_min) * (x_max - x_min)/(rx_max-rx_min); // -> 41 Cycles
-					//point.x = (point.x - rx_min) * x_max/(rx_max-rx_min); // ->28 Cycles
-					//point.x = (int32_t)(point.x - rx_min) * x_max/(rx_max-rx_min); // ->130 Cycles
-					//point.x = point.x * a + rx_min; // -> 200
-					if (flipXY)
-					{
-						point.x = (int32_t)(touchPoint.y - rx_min) * dx/rx_max; // ->125 Cycles
-						point.y = (int32_t)(touchPoint.x - ry_min) * dy/ry_max;
-					}
-					else
-					{
-						point.x = (int32_t)(touchPoint.x - rx_min) * dx/rx_max; // ->125 Cycles
-						point.y = (int32_t)(touchPoint.y - ry_min) * dy/ry_max;
-					}
-
-					if (abs(lastPoint.x - point.x) > 2 || abs(lastPoint.y - point.y) > 2)
-						valid = false;
-					else
-						pressed = true;
-
-					lastPoint = point;
-				}
-				else
-					valid = false;
-
-				lastP = touchPoint.z;
-
-				startTchRead();
+				point.x = (int32_t)(touchPoint.y - rx_min) * dx/rx_max; // ->125 Cycles
+				point.y = (int32_t)(touchPoint.x - ry_min) * dy/ry_max;
 			}
 			else
 			{
-				lastP = 0;
-				pressed = false;
-				setIdle();
+				point.x = (int32_t)(touchPoint.x - rx_min) * dx/rx_max; // ->125 Cycles
+				point.y = (int32_t)(touchPoint.y - ry_min) * dy/ry_max;
 			}
 
-			if (valid)
-			{
-				if (!lastPressed && pressed) touchState = TCH_PRESS;
-				else if (lastPressed && pressed) touchState = TCH_HOLD;
-				else if (lastPressed && !pressed) touchState = TCH_RELEASE;
-				else touchState = TCH_FREE;
+			if (abs(lastPoint.x - point.x) > 2 || abs(lastPoint.y - point.y) > 2)
+				valid = false;
+			else
+				pressed = true;
 
-				checkButtons(point.x, point.y);
-
-				// Send notifications
-				// Touch interrupts enabled and cool down ready
-				if (touchIRQ && IS_READY)
-				{
-					sendEvent = true;
-					IS_READY = false;
-					TMR2CN0 |= TMR2CN0_TR2__RUN;		// Enable cool down timer
-				}
-
-				// Button interrupts
-				if (buttonIRQ && activeBtn != EVNT_IDLE)
-					sendEvent = true;
-
-				if (sendEvent)
-				{
-					outBuff[0] = activeBtn;
-					outBuff[1] = ((uint8_t*)&point.x)[1];
-					outBuff[2] = ((uint8_t*)&point.x)[0];
-					outBuff[3] = ((uint8_t*)&point.y)[1];
-					outBuff[4] = ((uint8_t*)&point.y)[0];
-					UART_Write(outBuff, 5);
-					sendEvent = false;
-				}
-
-				lastPressed = pressed;
-			}
+			lastPoint = point;
 		}
+		else
+			valid = false;
 
-		if (DATA_READY)
+		lastP = touchPoint.z;
+
+		startTchRead();
+	}
+	else
+	{
+		lastP = 0;
+		pressed = false;
+		setIdle();
+	}
+
+	if (valid)
+	{
+		if (!lastPressed && pressed) touchState = TCH_PRESS;
+		else if (lastPressed && pressed) touchState = TCH_HOLD;
+		else if (lastPressed && !pressed) touchState = TCH_RELEASE;
+		else touchState = TCH_FREE;
+
+		checkButtons(point.x, point.y);
+
+		// Send notifications
+		// Touch interrupts enabled and cool down ready
+		if (touchIRQ && IS_READY)
 		{
-			// Next byte should be the command
-			switch (UART_GetByte())
-			{
-			case TCH_CMD_CAL:
-				dx = UART_GetUI16();
-				rx_min = UART_GetUI16();
-				rx_max = UART_GetUI16();
-				dy = UART_GetUI16();
-				ry_min = UART_GetUI16();
-				ry_max = UART_GetUI16();
-				rx_max = rx_max - rx_min;
-				ry_max = ry_max - ry_min;
-				break;
-
-			case TCH_CMD_THR:
-				p_min = UART_GetUI16();
-				p_max = UART_GetUI16();
-				break;
-
-			case TCH_CMD_BTN:
-				outBuff[0] = UART_GetByte();
-				outBuff[1] = UART_GetByte();
-				outBuff[2] = UART_GetByte();
-				outBuff[3] = UART_GetByte();
-				editButton(outBuff[0], outBuff[1], outBuff[2],
-						UART_GetUI16(),
-						UART_GetUI16(),
-						UART_GetUI16(),
-						UART_GetUI16());
-				break;
-
-			case TCH_CMD_IRQ:
-				outBuff[0] = UART_GetByte();
-				touchIRQ = outBuff[0] & 0x01;
-				buttonIRQ = outBuff[0] & 0x02;
-				flipXY = outBuff[0] & 0x04;
-				TMR2RLL = UART_GetByte();
-				TMR2RLH = UART_GetByte();
-				break;
-
-			// Commands that return a response
-			case TCH_CMD_LEV:
-				outBuff[0] = activeBtn;
-				outBuff[1] = ((uint8_t*)&point.x)[1];
-				outBuff[2] = ((uint8_t*)&point.x)[0];
-				outBuff[3] = ((uint8_t*)&point.y)[1];
-				outBuff[4] = ((uint8_t*)&point.y)[0];
-				UART_Write(outBuff, 5);
-			}
-			DATA_READY--;
+			sendEvent = true;
+			IS_READY = false;
+			TMR2CN0 |= TMR2CN0_TR2__RUN;		// Enable cool down timer
 		}
+
+		// Button interrupts
+		if (buttonIRQ && activeBtn != EVNT_IDLE)
+			sendEvent = true;
+
+		if (sendEvent)
+		{
+			outBuff[0] = activeBtn;
+			outBuff[1] = ((uint8_t*)&point.x)[1];
+			outBuff[2] = ((uint8_t*)&point.x)[0];
+			outBuff[3] = ((uint8_t*)&point.y)[1];
+			outBuff[4] = ((uint8_t*)&point.y)[0];
+			UART_Write(outBuff, 5);
+			sendEvent = false;
+		}
+
+		lastPressed = pressed;
 	}
 }
 
