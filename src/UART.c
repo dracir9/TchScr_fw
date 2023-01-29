@@ -83,6 +83,19 @@ uint16_t UART_GetUI16()
 	return val;
 }
 
+static void UART_ReceiveByte(uint8_t byte)
+{
+	if (inCnt == UART_IN_SIZE)
+		return;
+
+	UART_DATA_IN[inStPtr++] = byte;
+
+	inCnt++;
+
+	if (inStPtr >= UART_IN_SIZE)
+		inStPtr = 0;
+}
+
 //-----------------------------------------------------------------------------
 // UART0_ISR
 //-----------------------------------------------------------------------------
@@ -107,17 +120,7 @@ SI_INTERRUPT(UART0_ISR, UART0_IRQn)
 			// Reset timer
 			TMR3 = 0;
 
-			//##############################
-			// Store in circular queue
-			if (inCnt == UART_IN_SIZE)
-				return;
-
-			UART_DATA_IN[inStPtr++] = byte;
-
-			inCnt++;
-			if (inStPtr >= UART_IN_SIZE)
-				inStPtr = 0;
-			//##############################
+			UART_ReceiveByte(byte);
 
 			nReceive--;
 			if (nReceive == 0)
@@ -160,17 +163,7 @@ SI_INTERRUPT(UART0_ISR, UART0_IRQn)
 				return;
 			}
 
-			//##############################
-			// Store in circular queue
-			if (inCnt == UART_IN_SIZE)
-				return;
-
-			UART_DATA_IN[inStPtr++] = byte;
-
-			inCnt++;
-			if (inStPtr >= UART_IN_SIZE)
-				inStPtr = 0;
-			//##############################
+			UART_ReceiveByte(byte);
 
 			IS_RECEIVING = true;
 
