@@ -13,7 +13,7 @@
 
 #define UART_OUT_SIZE 5
 
-#define UART_IN_SIZE 12
+#define UART_IN_SIZE  40
 
 // Write commands
 #define TCH_CMD_CAL		0x01	// Receive calibration values
@@ -24,15 +24,12 @@
 // Read commands
 #define TCH_CMD_LEV		0x80	// Get Last Event
 
-extern uint8_t UART_DATA_OUT[UART_OUT_SIZE];
 extern uint8_t UART_DATA_IN[UART_IN_SIZE];
 
-extern volatile bool DATA_READY;
-
-extern uint8_t CMD_ID;
-
-extern Vec2 LAST_POINT;
+extern volatile uint8_t DATA_READY;
 
 void UART_Write(uint8_t *buff, uint8_t size);
+uint8_t UART_GetByte();
+uint16_t UART_GetUI16();
 
 #endif /* INC_UART_H_ */

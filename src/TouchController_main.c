@@ -17,24 +17,31 @@
 // $[Generated Includes]
 // [Generated Includes]$
 
-int16_t dx = 320;
-int16_t rx_min = 110;
-int16_t rx_max = 780;
+static int16_t dx = 320;
+static int16_t rx_min = 110;
+static int16_t rx_max = 780;
 
-int16_t dy = 480;
-int16_t ry_min = 65;
-int16_t ry_max = 885;
+static int16_t dy = 480;
+static int16_t ry_min = 65;
+static int16_t ry_max = 885;
 
-uint16_t p_min = 100;
-uint16_t p_max = 20000;
+static uint16_t p_min = 100;
+static uint16_t p_max = 20000;
 
-bool touchIRQ = false;
-bool buttonIRQ = false;
-bool flipXY = false;
-bool sendEvent = false;
-volatile bool IS_READY = true;
+static bool touchIRQ = false;
+static bool buttonIRQ = false;
+static bool flipXY = false;
+static bool sendEvent = false;
+static volatile bool IS_READY = true;
 
-uint8_t outBuff[5];
+static uint8_t outBuff[5];
+
+static Vec2 point;
+static bool valid = false;
+static bool pressed = false;
+static bool lastPressed = false;
+static uint16_t lastP = 0;
+static Vec2 lastPoint;
 
 //-----------------------------------------------------------------------------
 // SiLabs_Startup() Routine
@@ -54,12 +61,6 @@ void SiLabs_Startup (void)
 // ----------------------------------------------------------------------------
 int main (void)
 {
-	Vec2 point;
-	bool valid = false;
-	bool pressed = false;
-	bool lastPressed = false;
-	uint16_t lastP = 0;
-
 	// Call hardware initialization routine
 	enter_DefaultMode_from_RESET();
 
@@ -99,12 +100,12 @@ int main (void)
 						point.y = (int32_t)(touchPoint.y - ry_min) * dy/ry_max;
 					}
 
-					if (abs(LAST_POINT.x - point.x) > 2 || abs(LAST_POINT.y - point.y) > 2)
+					if (abs(lastPoint.x - point.x) > 2 || abs(lastPoint.y - point.y) > 2)
 						valid = false;
 					else
 						pressed = true;
 
-					LAST_POINT = point;
+					lastPoint = point;
 				}
 				else
 					valid = false;
@@ -159,46 +160,44 @@ int main (void)
 
 		if (DATA_READY)
 		{
-			switch (CMD_ID)
+			// Next byte should be the command
+			switch (UART_GetByte())
 			{
 			case TCH_CMD_CAL:
-				((uint8_t*)&dx)[1] = UART_DATA_IN[0];
-				((uint8_t*)&dx)[0] = UART_DATA_IN[1];
-				((uint8_t*)&rx_min)[1] = UART_DATA_IN[2];
-				((uint8_t*)&rx_min)[0] = UART_DATA_IN[3];
-				((uint8_t*)&rx_max)[1] = UART_DATA_IN[4];
-				((uint8_t*)&rx_max)[0] = UART_DATA_IN[5];
-				((uint8_t*)&dy)[1] = UART_DATA_IN[6];
-				((uint8_t*)&dy)[0] = UART_DATA_IN[7];
-				((uint8_t*)&ry_min)[1] = UART_DATA_IN[8];
-				((uint8_t*)&ry_min)[0] = UART_DATA_IN[9];
-				((uint8_t*)&ry_max)[1] = UART_DATA_IN[10];
-				((uint8_t*)&ry_max)[0] = UART_DATA_IN[11];
+				dx = UART_GetUI16();
+				rx_min = UART_GetUI16();
+				rx_max = UART_GetUI16();
+				dy = UART_GetUI16();
+				ry_min = UART_GetUI16();
+				ry_max = UART_GetUI16();
 				rx_max = rx_max - rx_min;
 				ry_max = ry_max - ry_min;
 				break;
 
 			case TCH_CMD_THR:
-				((uint8_t*)&p_min)[1] = UART_DATA_IN[0];
-				((uint8_t*)&p_min)[0] = UART_DATA_IN[1];
-				((uint8_t*)&p_max)[1] = UART_DATA_IN[2];
-				((uint8_t*)&p_max)[0] = UART_DATA_IN[3];
+				p_min = UART_GetUI16();
+				p_max = UART_GetUI16();
 				break;
 
 			case TCH_CMD_BTN:
-				editButton(UART_DATA_IN[0], UART_DATA_IN[1], UART_DATA_IN[2],
-						UART_DATA_IN[4] | UART_DATA_IN[5] << 8,
-						UART_DATA_IN[6] | UART_DATA_IN[7] << 8,
-						UART_DATA_IN[8] | UART_DATA_IN[9] << 8,
-						UART_DATA_IN[10] | UART_DATA_IN[11] << 8);
+				outBuff[0] = UART_GetByte();
+				outBuff[1] = UART_GetByte();
+				outBuff[2] = UART_GetByte();
+				outBuff[3] = UART_GetByte();
+				editButton(outBuff[0], outBuff[1], outBuff[2],
+						UART_GetUI16(),
+						UART_GetUI16(),
+						UART_GetUI16(),
+						UART_GetUI16());
 				break;
 
 			case TCH_CMD_IRQ:
-				touchIRQ = UART_DATA_IN[0] & 0x01;
-				buttonIRQ = UART_DATA_IN[0] & 0x02;
-				flipXY = UART_DATA_IN[0] & 0x04;
-				TMR2RLL = UART_DATA_IN[1];
-				TMR2RLH = UART_DATA_IN[2];
+				outBuff[0] = UART_GetByte();
+				touchIRQ = outBuff[0] & 0x01;
+				buttonIRQ = outBuff[0] & 0x02;
+				flipXY = outBuff[0] & 0x04;
+				TMR2RLL = UART_GetByte();
+				TMR2RLH = UART_GetByte();
 				break;
 
 			// Commands that return a response
@@ -210,7 +209,7 @@ int main (void)
 				outBuff[4] = ((uint8_t*)&point.y)[0];
 				UART_Write(outBuff, 5);
 			}
-			DATA_READY = false;
+			DATA_READY--;
 		}
 	}
 }

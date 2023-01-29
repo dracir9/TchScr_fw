@@ -7,18 +7,18 @@
 
 #include "TouchScreen.h"
 
-volatile uint8_t readTchState;
+static volatile uint8_t readTchState;
 volatile bool readComplete = false;
 volatile Vec3 touchPoint;
-volatile uint8_t pressCnt = 254;
+static volatile uint8_t pressCnt = 254;
 
 int8_t activeBtn = EVNT_IDLE;	// First 3 bits: Event ID || Last 5 bits: Button ID
-int8_t lastHoldBtn = -1;
-int8_t lastPressBtn = -1;
+static int8_t lastHoldBtn = -1;
+static int8_t lastPressBtn = -1;
 
 uint8_t touchState = TCH_FREE;
 
-Button xdata buttonArr[MAX_BUTTONS] = {0};
+static Button xdata buttonArr[MAX_BUTTONS] = {0};
 
 bool wakeFromIdle = false;
 

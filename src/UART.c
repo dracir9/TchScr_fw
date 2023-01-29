@@ -13,28 +13,27 @@
 //-----------------------------------------------------------------------------
 
 // Global buffer for UART outgoing data. All transmit data is read from here
-uint8_t UART_DATA_OUT[UART_OUT_SIZE] = {0};
+static uint8_t UART_DATA_OUT[UART_OUT_SIZE] = {0};
 // Bytes to write
-uint8_t nSend = 0;
+static int8_t nSend = 0;
 
 // Global buffer for UART incoming data. All received data is written here
 uint8_t UART_DATA_IN[UART_IN_SIZE] = {0};
 // Bytes expected to receive
-uint8_t nReceive = 0;
+static uint8_t nReceive = 0;
+
 // Receiving command
-bool IS_RECEIVING = false;
+static bool IS_RECEIVING = false;
 
-uint8_t CMD_ID = 0;
-
-volatile bool DATA_READY = false;		// Data received
+volatile uint8_t DATA_READY = 0;		// Data received
 
 // Software flag to indicate the UART bus is transmitting
-volatile bool UART_BUSY = false;
+static volatile bool UART_BUSY = false;
 
-static uint8_t BytesSent;
-static uint8_t BytesReceived;
-
-Vec2 LAST_POINT;
+static uint8_t BytesSent = 0;
+static uint8_t inStPtr = 0;
+static uint8_t inEndPtr = 0;
+static uint8_t inCnt = 0;
 
 void UART_Write(uint8_t *buff, uint8_t size)
 {
@@ -48,6 +47,41 @@ void UART_Write(uint8_t *buff, uint8_t size)
 	SBUF0 = size;
 }
 
+uint8_t UART_GetByte()
+{
+	uint8_t byte;
+
+	if (inCnt == 0)
+		return 0;
+
+	byte = UART_DATA_IN[inEndPtr++];
+
+	inCnt--;
+	if (inEndPtr >= UART_IN_SIZE)
+		inEndPtr = 0;
+
+	return byte;
+}
+
+uint16_t UART_GetUI16()
+{
+	uint16_t val;
+
+	if (inCnt <= 1)
+		return 0;
+
+	((uint8_t*)&val)[1] = UART_DATA_IN[inEndPtr++];
+	if (inEndPtr >= UART_IN_SIZE)
+		inEndPtr = 0;
+
+	((uint8_t*)&val)[0] = UART_DATA_IN[inEndPtr++];
+	if (inEndPtr >= UART_IN_SIZE)
+		inEndPtr = 0;
+
+	inCnt -= 2;
+
+	return val;
+}
 
 //-----------------------------------------------------------------------------
 // UART0_ISR
@@ -60,32 +94,44 @@ void UART_Write(uint8_t *buff, uint8_t size)
 //-----------------------------------------------------------------------------
 SI_INTERRUPT(UART0_ISR, UART0_IRQn)
 {
+	uint8_t byte = 0;
+
 	if (SCON0_RI == 1) 							// New Byte received
 	{
 		SCON0_RI = 0;							// Clear interrupt flag
-
-		if (DATA_READY)							// Data not processed yet
-			return;
+		// Buffer new byte
+		byte = SBUF0;
 
 		if (IS_RECEIVING)
 		{
 			// Reset timer
 			TMR3 = 0;
 
-			UART_DATA_IN[BytesReceived++] = SBUF0;
-			if (BytesReceived >= nReceive) {
+			//##############################
+			// Store in circular queue
+			if (inCnt == UART_IN_SIZE)
+				return;
+
+			UART_DATA_IN[inStPtr++] = byte;
+
+			inCnt++;
+			if (inStPtr >= UART_IN_SIZE)
+				inStPtr = 0;
+			//##############################
+
+			nReceive--;
+			if (nReceive == 0)
+			{
 				// Disable timeout timer
 				TMR3CN0 &= ~TMR3CN0_TR3__RUN;
 
 				IS_RECEIVING = false;
-				DATA_READY = true;
+				DATA_READY++;
 			}
 		}
 		else
 		{
-			CMD_ID = SBUF0;		// First byte should be the command ID
-
-			switch (CMD_ID)
+			switch (byte)
 			{
 			case TCH_CMD_CAL:
 				nReceive = 12;
@@ -105,16 +151,28 @@ SI_INTERRUPT(UART0_ISR, UART0_IRQn)
 
 			// Read commands
 			case TCH_CMD_LEV:
-				DATA_READY = true;
+				DATA_READY++;
 				return;
 
 			default:
 				// Invalid command
-				CMD_ID = 0;
+				byte = 0;
 				return;
 			}
+
+			//##############################
+			// Store in circular queue
+			if (inCnt == UART_IN_SIZE)
+				return;
+
+			UART_DATA_IN[inStPtr++] = byte;
+
+			inCnt++;
+			if (inStPtr >= UART_IN_SIZE)
+				inStPtr = 0;
+			//##############################
+
 			IS_RECEIVING = true;
-			BytesReceived = 0;
 
 			// Reset timer
 			TMR3 = 0;
@@ -154,4 +212,10 @@ SI_INTERRUPT(TIMER3_ISR, TIMER3_IRQn)
 	TMR3CN0 &= ~TMR3CN0_TF3H__BMASK;	// Clear Timer3 interrupt-pending flag
 	TMR3CN0 &= ~TMR3CN0_TR3__RUN;		// Disable timeout timer
 	IS_RECEIVING = false;
+
+	// Reset queue
+	DATA_READY = 0;
+	inStPtr = 0;
+	inEndPtr = 0;
+	inCnt = 0;
 }
